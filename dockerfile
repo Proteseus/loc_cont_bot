@@ -8,10 +8,10 @@ WORKDIR /app
 ADD . /app
 
 # Install any needed packages specified in requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements20.txt
 
 # Make port 80 available to the world outside this container
 EXPOSE 80
 
 # Run bot.py when the container launches
-CMD ["python", "bot.py"]
+CMD ["python", "ptb20.py"]

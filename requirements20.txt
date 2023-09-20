@@ -1,0 +1,5 @@
+python-telegram-bot
+logging
+schedule
+python-dotenv
+
