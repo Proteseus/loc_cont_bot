@@ -34,7 +34,7 @@ worker_thread = Thread(target=worker)
 worker_thread.start()
 
 # Enable logging
-TOKEN = "345076322:AAGyXtfdBU_jGPpRhC1Ieatmi8294nTMvS4"
+TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO
 )
