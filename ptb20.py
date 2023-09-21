@@ -3,9 +3,13 @@ import queue
 import asyncio
 import logging
 import tracemalloc
+from pprint import pprint
 from threading import Thread
+from db import create_user_order, add_order, session
+from model import Order, Base
+
 from dotenv import load_dotenv
-from telegram import Update, ReplyKeyboardMarkup, ReplyKeyboardRemove, KeyboardButton, Bot
+from telegram import Update, ReplyKeyboardMarkup, ReplyKeyboardRemove, KeyboardButton, Bot, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CallbackContext, CallbackQueryHandler, CommandHandler, ConversationHandler, filters, MessageHandler, Updater
 
 load_dotenv()
@@ -16,18 +20,34 @@ logger = logging.getLogger(__name__)
 
 queue_ = queue.Queue()
 
-LOCATION, CONTACT, DONE = range(3)
+LOCATION, DETAILS, CONTACT, MORE_CONTACT, SUBSCRIPTION = range(5)
 
 async def start(update: Update, context: CallbackContext) -> int:
-    """Prompt user to share location"""
-    location_keyboard = KeyboardButton(text="Share Location", request_location=True)
-    custom_keyboard = [[ location_keyboard ]]
-    reply_markup = ReplyKeyboardMarkup(custom_keyboard, resize_keyboard=True)
-    await update.message.reply_text(
-        'Hi! Please share your location by pressing the button below.',
-        reply_markup=reply_markup
-    )
-    return LOCATION
+    order = session.query(Order).filter(Order.username == update.effective_user.id).first()
+    if order is None:
+        """Prompt user to share location"""
+        location_keyboard = KeyboardButton(text="Share Location", request_location=True)
+        custom_keyboard = [[ location_keyboard ]]
+        reply_markup = ReplyKeyboardMarkup(custom_keyboard, resize_keyboard=True)
+        await update.message.reply_text(
+            'Hi! Please share your location by pressing the button below.',
+            reply_markup=reply_markup
+        )
+        return LOCATION
+    else:
+        await update.message.reply_text(
+            "Order has been recieved, we'll call to confirm.\nThank you for choosing us.",
+            reply_markup=ReplyKeyboardRemove()
+        )
+        key_mapping = {'username': 'user_id', 'fName': 'fName', 'lName': 'lName', 'primary_phone': 'phone', 'secondary_phone': 's_phone', 'address_details': 'add_details', 'latitude': 'latitude','longitude': 'longitude', 'order_count': 'count'}
+        
+        # Populate a dictionary with values from the model instance
+        order_dict = {new_key: getattr(order, old_key) for old_key, new_key in key_mapping.items()}
+        order_dict['subscription'] = 'Yes'
+        
+        add_order(order.username)
+        
+        return await send_details(update, context, False, order_dict)
 
 async def location(update: Update, context: CallbackContext) -> int:
     """Store user location and ask for contact"""
@@ -40,6 +60,19 @@ async def location(update: Update, context: CallbackContext) -> int:
     context.user_data['location'] = user_location
     logger.info("Location %f / %f", user_location.latitude, user_location.longitude)
 
+    await update.message.reply_text(
+        """Specify the service you want.\nIf its is a hotel or a guest house\nplease specify the name and the room or villa number""",
+        reply_markup=ReplyKeyboardRemove()
+    )
+    return DETAILS
+
+async def details(update: Update, context: CallbackContext) -> int:
+    """Store details and ask for contact"""
+    user_details = update.message.text
+    logger.info("Details: %s", user_details)
+    
+    context.user_data['details'] = user_details
+    
     contact_keyboard = KeyboardButton(text="Share Contact", request_contact=True)
     custom_keyboard = [[ contact_keyboard ]]
     reply_markup = ReplyKeyboardMarkup(custom_keyboard, resize_keyboard=True)
@@ -47,10 +80,11 @@ async def location(update: Update, context: CallbackContext) -> int:
         'Hi! Please share your contact by pressing the button below.',
         reply_markup=reply_markup
     )
+
     return CONTACT
 
 async def contact(update: Update, context: CallbackContext) -> int:
-    """Store user contact and end conversation"""
+    """Store user contact and ask for additional"""
     user_contact = update.message.contact
     # Handle the case when contact is not provided
     if user_contact is None:
@@ -60,49 +94,61 @@ async def contact(update: Update, context: CallbackContext) -> int:
     context.user_data['contact'] = user_contact
     logger.info("Contact %s: %s", user_contact.first_name, user_contact.phone_number)
 
-    # Use a callback function to send the location and contact details to the specified user
-    async def send_details(update: Update, context: CallbackContext):
-        username = '344776272'
-        
-        # Get user info
-        fName = update.message.contact.first_name 
-        lName = update.message.contact.last_name 
-        # phone = update.message.contact.phone_number
-        phone = '0911223344'
+    await update.message.reply_text(
+        """If you wish to add another number for pickup by a different person or if we can't reach you on the first number. 
+        Just the number.""",
+        reply_markup=ReplyKeyboardRemove()
+    )
+    
+    return MORE_CONTACT
 
-        # Get location 
-        latitude = context.user_data['location'].latitude
-        longitude = context.user_data['location'].longitude
-        
-        message = f"""Name: {fName + (' ' + lName if lName is not None else '')}\n Phone: {phone}
-        [Open in Map](https://maps.google.com/?q={latitude},{longitude})"""
-        await context.bot.send_message(
-            chat_id=username,
-            text=message,
-            parse_mode='markdown'
-        )
-        
-        # Send map and user details
-        await context.bot.send_venue(
-            chat_id=username, 
-            latitude=latitude, 
-            longitude=longitude,
-            title=f"Name: {fName + (' ' + lName if lName is not None else '')}",
-            address=f"Phone: {phone}"
-        )
+async def more_contact(update: Update, context: CallbackContext) -> int:
+    """Store additional contact and end conversation"""
+    user_additional_contact = update.message.text
+    context.user_data['more_contact'] = user_additional_contact
+    logger.info("Additional contact: %s", user_additional_contact)
 
-    await send_details(update, context)
+    
+    subscribe = KeyboardButton(text="Subscribe")
+    no = KeyboardButton(text="No")
+    custom_keyboard = [[ subscribe, no ]]
+    reply_markup = ReplyKeyboardMarkup(custom_keyboard, resize_keyboard=True)
+    await update.message.reply_text(
+        'Hi! Would you like to subscribe to our ',
+        reply_markup=reply_markup
+    )
+    
+    return SUBSCRIPTION
 
-    """End conversation"""
-    await update.message.reply_text('Thank you, bye!')
-    return ConversationHandler.END
+async def subscription_optin(update: Update, context: CallbackContext) -> int:
+    sub = update.effective_message.text
+    
+    order_details = {}
+    order_details['user_id'] = context.user_data['contact'].user_id
+    order_details['fName'] = context.user_data['contact'].first_name 
+    order_details['lName'] = context.user_data['contact'].last_name
+    order_details['phone'] = context.user_data['contact'].phone_number
+    order_details['s_phone'] = context.user_data['more_contact'] if 'more_contact' in context.user_data.keys() else None
+    order_details['add_details'] = context.user_data['details'].replace('\n', ' ')
+
+    # Get location 
+    order_details['latitude'] = context.user_data['location'].latitude 
+    order_details['longitude'] = context.user_data['location'].longitude
+    
+    if sub == 'Subscribe':
+        order_details['subscription'] = 'Yes'
+        return await send_details(update, context, True, order_details)
+    elif sub == 'No':
+        order_details['subscription'] = 'No'
+        return await send_details(update, context, False, order_details)
 
 async def cancel(update: Update, context: CallbackContext) -> int:
     """Cancels and ends the conversation."""
     user = update.message.from_user
     logger.info("User %s canceled the conversation.", user.first_name)
     await update.message.reply_text(
-        "Bye! I hope we can talk again some day.", reply_markup=ReplyKeyboardRemove()
+        "Bye! I hope we can talk again some day.",
+        reply_markup=ReplyKeyboardRemove()
     )
     return ConversationHandler.END
 
@@ -110,6 +156,39 @@ async def error_handler(update: Update, context: CallbackContext):
     """Log the error and handle it gracefully"""
     logger.error(msg="Exception occurred", exc_info=context.error)
     await update.message.reply_text('Sorry, an error occurred. Please try again.')
+
+
+async def send_details(update: Update, context: CallbackContext, sub: False, order_details:dict) -> int:
+    username = os.getenv('USERNAME')
+    
+    message = "Name: {}\nPhone: {}\nAlt: {}\nDetails: {}\nSubscription: {}\n[Open in Map](https://maps.google.com/?q={},{})".format(
+        order_details['fName'] + (' ' + order_details['lName'] if order_details['lName'] is not None else ''),
+        order_details['phone'],
+        order_details['s_phone'],
+        order_details['add_details'],
+        order_details['subscription'],
+        str(order_details['latitude']),
+        str(order_details['longitude']))
+    
+    
+    # message = f"""Name: {fName + (' ' + lName if lName is not None else '')}\nPhone: {phone}\nAlt: {s_phone}\nDetails: {add_details}\nSubscription: {subscription}\n[Open in Map](https://maps.google.com/?q={latitude},{longitude})"""
+    await context.bot.send_message(
+        chat_id=username,
+        text=message,
+        parse_mode='markdown'
+    )
+    logger.info("Order recieved and transmitted to %s.", username)
+    
+    if sub:
+        # Register user if they opt-in for a subscription
+        order = create_user_order(order_details['user_id'], order_details['fName'], order_details['lName'], order_details['phone'], order_details['s_phone'], order_details['add_details'], order_details['latitude'], order_details['longitude'])
+        logger.info("Subscription %s registered.", order.id)
+        await update.message.reply_text(
+            "Thank you for subscribing",
+            reply_markup=ReplyKeyboardRemove())
+    
+    await update.message.reply_text("Thank you, We'll be in touch!")
+    return ConversationHandler.END
 
 ########################################################
 def main():
@@ -120,7 +199,14 @@ def main():
         entry_points=[CommandHandler('start', start)],
         states={
             LOCATION: [MessageHandler(filters.LOCATION, location)],
-            CONTACT: [MessageHandler(filters.CONTACT, contact)],
+            DETAILS: [MessageHandler(filters.TEXT, details)],
+            CONTACT: [
+                MessageHandler(filters.CONTACT, contact),
+            ],
+            MORE_CONTACT: [
+                MessageHandler(filters.TEXT, more_contact),
+            ],
+            SUBSCRIPTION: [MessageHandler(filters.TEXT, subscription_optin)]
         },
         fallbacks=[CommandHandler("cancel", cancel)]
     )
@@ -128,7 +214,7 @@ def main():
     application.add_handler(conv_handler)
 
     # Run bot
-    application.run_polling(allowed_updates=Update.ALL_TYPES)
+    application.run_polling(allowed_updates=Update.ALL_TYPES, poll_interval=1.0)
 
 
 if __name__ == '__main__':
