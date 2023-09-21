@@ -7,3 +7,4 @@ requirements13.txt
 /ven20
 .vscode/
 __pycache__/
+db/
