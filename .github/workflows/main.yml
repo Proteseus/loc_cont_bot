@@ -1,0 +1,26 @@
+name: Python application
+
+on:
+  push:
+    branches: [ ptb20 ]
+  pull_request:
+    branches: [ ptb20 ]
+
+jobs:
+  deploy:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Deploy to VPS
+      run: |
+        ssh -o StrictHostKeyChecking=no user@your-vps-ip <<EOF
+        cd loc_cont_bot
+        git pull
+        docker stop order_book_bot && docker rm order_book_bot
+        docker build -t order_book_bot .
+        docker run -d --name order_book_bot order_book_bot:latest
+        EOF
+      env:
+        DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
