@@ -16,7 +16,7 @@ jobs:
     - uses: actions/checkout@v2
     - name: Deploy to VPS
       run: |
-        ssh -o StrictHostKeyChecking=no user@your-vps-ip <<EOF
+        ssh -o StrictHostKeyChecking=no debrye@94.130.25.72 <<EOF
         cd loc_cont_bot
         git pull
         docker stop order_book_bot && docker rm order_book_bot
