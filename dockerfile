@@ -7,6 +7,9 @@ WORKDIR /app
 # Add the current directory contents into the container at /app
 ADD . /app
 
+# Copy the .env file into the container
+COPY .env .env
+
 # System dependencies for MySQL
 RUN apt-get update && apt-get install -y default-libmysqlclient-dev
 RUN apt-get install libpq-dev
