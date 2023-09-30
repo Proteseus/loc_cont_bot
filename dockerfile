@@ -9,6 +9,7 @@ ADD . /app
 
 # System dependencies for MySQL
 RUN apt-get update && apt-get install -y default-libmysqlclient-dev
+RUN apt-get install libpq-dev
 
 # Install any needed packages specified in requirements.txt
 RUN pip install -r requirements.txt
