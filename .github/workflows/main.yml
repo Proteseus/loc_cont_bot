@@ -21,7 +21,7 @@ jobs:
         git pull
         docker stop order_book_bot && docker rm order_book_bot
         docker build -t order_book_bot .
-        docker run -d --name order_book_bot order_book_bot:latest
+        docker run -v $(pwd)/local_db:/app/db -v $(pwd)/.env:/app/.env -d --name order_book_bot order_book_bot:latest
         EOF
       env:
         DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
