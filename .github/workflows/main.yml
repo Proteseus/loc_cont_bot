@@ -25,3 +25,6 @@ jobs:
         EOF
       env:
         DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
+        USERNAME: ${{ secrets.USERNAME }}
+        TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        SQLALCHEMY_DATABASE_URI: ${{ secrets.SQLALCHEMY_DATABASE_URI }}
