@@ -1,3 +1,4 @@
+import uuid
 from sqlalchemy import Column, Integer, String, DECIMAL
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -6,7 +7,7 @@ Base = declarative_base()
 class Order(Base):
     __tablename__ = 'order'
     
-    id = Column(Integer, primary_key=True)
+    id = Column(String, primary_key=True, default=str(uuid.uuid4()))
     username = Column(String(10))
     fName = Column(String, nullable=False)
     lName = Column(String, nullable=True)
