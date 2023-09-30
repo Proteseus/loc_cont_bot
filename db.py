@@ -7,12 +7,16 @@ from sqlalchemy.orm import sessionmaker
 
 load_dotenv()
 
-engine = create_engine(os.getenv('SQLALCHEMY_DATABASE_URI'))
+db_uri = os.getenv('SQLALCHEMY_DATABASE_URI')
+engine = create_engine(db_uri)
 Session = sessionmaker(bind=engine)
 
 # Check if the database exists
-inspector = inspect(engine)
-if not inspector.has_table('order'):
+# inspector = inspect(engine)
+# if not inspector.has_table('order'):
+#     Base.metadata.create_all(engine)
+
+if not os.path.exists(db_uri):
     Base.metadata.create_all(engine)
 
 session = Session()
