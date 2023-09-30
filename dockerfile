@@ -7,6 +7,9 @@ WORKDIR /app
 # Add the current directory contents into the container at /app
 ADD . /app
 
+# System dependencies for MySQL
+RUN apt-get update && apt-get install -y default-libmysqlclient-dev
+
 # Install any needed packages specified in requirements.txt
 RUN pip install -r requirements.txt
 

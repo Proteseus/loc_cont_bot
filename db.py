@@ -10,8 +10,8 @@ load_dotenv()
 engine = create_engine(os.getenv('SQLALCHEMY_DATABASE_URI'))
 Session = sessionmaker(bind=engine)
 
-# Check if the database file already exists
-if not os.path.exists('db/database.db'):
+# Check if the database exists
+if not engine.dialect.has_table(engine, 'order'):
     Base.metadata.create_all(engine)
 
 session = Session()
