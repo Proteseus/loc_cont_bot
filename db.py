@@ -2,7 +2,7 @@ import os
 from model import Order, Base
 
 from dotenv import load_dotenv
-from sqlalchemy import create_engine, event
+from sqlalchemy import create_engine, event, inspect
 from sqlalchemy.orm import sessionmaker
 
 load_dotenv()
@@ -11,7 +11,8 @@ engine = create_engine(os.getenv('SQLALCHEMY_DATABASE_URI'))
 Session = sessionmaker(bind=engine)
 
 # Check if the database exists
-if not engine.dialect.has_table(engine, 'order'):
+inspector = inspect(engine)
+if not inspector.has_table('order'):
     Base.metadata.create_all(engine)
 
 session = Session()
