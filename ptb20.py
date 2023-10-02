@@ -26,12 +26,9 @@ async def start(update: Update, context: CallbackContext) -> int:
     order = session.query(Order).filter(Order.username == update.effective_user.id).first()
     if order is None:
         """Prompt user to share location"""
-        location_keyboard = KeyboardButton(text="Share Location", request_location=True)
-        custom_keyboard = [[ location_keyboard ]]
-        reply_markup = ReplyKeyboardMarkup(custom_keyboard, resize_keyboard=True)
         await update.message.reply_text(
-            'Hi! Please share your location by pressing the button below.',
-            reply_markup=reply_markup
+        """Specify the service you want.\nIf its is a hotel or a guest house\nplease specify the name and the room or villa number""",
+            reply_markup=ReplyKeyboardRemove()
         )
         return DETAILS
     else:
@@ -60,10 +57,14 @@ async def location(update: Update, context: CallbackContext) -> int:
     context.user_data['location'] = user_location
     logger.info("Location %f / %f", user_location.latitude, user_location.longitude)
 
+    contact_keyboard = KeyboardButton(text="Share Contact", request_contact=True)
+    custom_keyboard = [[ contact_keyboard ]]
+    reply_markup = ReplyKeyboardMarkup(custom_keyboard, resize_keyboard=True)
     await update.message.reply_text(
-        """Specify the service you want.\nIf its is a hotel or a guest house\nplease specify the name and the room or villa number""",
-        reply_markup=ReplyKeyboardRemove()
+        'Hi! Please share your contact by pressing the button below.',
+        reply_markup=reply_markup
     )
+
     return CONTACT
 
 async def details(update: Update, context: CallbackContext) -> int:
@@ -73,15 +74,16 @@ async def details(update: Update, context: CallbackContext) -> int:
     
     context.user_data['details'] = user_details
     
-    contact_keyboard = KeyboardButton(text="Share Contact", request_contact=True)
-    custom_keyboard = [[ contact_keyboard ]]
+    location_keyboard = KeyboardButton(text="Share Location", request_location=True)
+    custom_keyboard = [[ location_keyboard ]]
     reply_markup = ReplyKeyboardMarkup(custom_keyboard, resize_keyboard=True)
+    
     await update.message.reply_text(
-        'Hi! Please share your contact by pressing the button below.',
+        'Hi! Please share your location by pressing the button below.',
         reply_markup=reply_markup
     )
-
-    return DETAILS
+    
+    return LOCATION
 
 async def contact(update: Update, context: CallbackContext) -> int:
     """Store user contact and ask for additional"""
