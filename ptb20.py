@@ -33,7 +33,7 @@ async def start(update: Update, context: CallbackContext) -> int:
             'Hi! Please share your location by pressing the button below.',
             reply_markup=reply_markup
         )
-        return LOCATION
+        return DETAILS
     else:
         await update.message.reply_text(
             "Order has been recieved, we'll call to confirm.\nThank you for choosing us.",
@@ -64,7 +64,7 @@ async def location(update: Update, context: CallbackContext) -> int:
         """Specify the service you want.\nIf its is a hotel or a guest house\nplease specify the name and the room or villa number""",
         reply_markup=ReplyKeyboardRemove()
     )
-    return DETAILS
+    return CONTACT
 
 async def details(update: Update, context: CallbackContext) -> int:
     """Store details and ask for contact"""
@@ -81,7 +81,7 @@ async def details(update: Update, context: CallbackContext) -> int:
         reply_markup=reply_markup
     )
 
-    return CONTACT
+    return DETAILS
 
 async def contact(update: Update, context: CallbackContext) -> int:
     """Store user contact and ask for additional"""
@@ -198,8 +198,8 @@ def main():
     conv_handler = ConversationHandler(
         entry_points=[CommandHandler('start', start)],
         states={
-            LOCATION: [MessageHandler(filters.LOCATION, location)],
             DETAILS: [MessageHandler(filters.TEXT, details)],
+            LOCATION: [MessageHandler(filters.LOCATION, location)],
             CONTACT: [
                 MessageHandler(filters.CONTACT, contact),
             ],
