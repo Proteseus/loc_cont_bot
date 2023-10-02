@@ -3,13 +3,18 @@ from dotenv import load_dotenv
 import asyncio
 import sqlite3
 from datetime import datetime, timedelta
-from db import Session
+
+from db import session
+from model import Order
+
+from telegram import Bot
+from telegram.ext import Updater
 
 load_dotenv()
 
 def check_subscribers():
     today = datetime.today().date()
-    subscribers = session.query(Order).filter(subscription_date = today).all()
+    subscribers = session.query(Order).filter(Order.subscription_date == today).all()
     if subscribers:
         return get_subscribers(subscribers)
 
@@ -17,7 +22,7 @@ async def send_to_user(message):
     bot = Bot(token=os.getenv('TELEGRAM_BOT_TOKEN'))
     chat_id = os.getenv('USERNAME')
     
-    await bot.send_message(chat_id=chat_id, message=message)
+    await bot.send_message(chat_id=chat_id, text=message)
 
 def format_subscribers(subscriber_list):
     formatted_message = ""
