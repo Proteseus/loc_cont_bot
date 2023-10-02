@@ -33,6 +33,11 @@ def add_order(username):
     session.commit()
     return {"user": order.username, "order_count": order.order_count}
 
-# @event.listens_for(Order, 'after_insert')
-# def trigger_add_order(mapper, connection, target):
-#     add_order(target.username)
+def delete_order(username):
+    order = session.query(Order).filter(Order.username == username).first()
+    if order:
+        order.delete_order()
+        session.commit()
+        return {"user": order.username, "order_count": order.order_count}
+    else:
+        return False

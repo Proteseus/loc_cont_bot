@@ -5,7 +5,7 @@ import logging
 import tracemalloc
 from pprint import pprint
 from threading import Thread
-from db import create_user_order, add_order, session
+from db import create_user_order, add_order, delete_order, session
 from model import Order, Base
 
 from dotenv import load_dotenv
@@ -152,6 +152,26 @@ async def cancel(update: Update, context: CallbackContext) -> int:
     )
     return ConversationHandler.END
 
+async def cancel_sub(update: Update, context: CallbackContext) -> int:
+    """Cancels and ends the conversation."""
+    user = update.message.from_user
+    
+    sub = delete_order(user.id)
+    
+    if sub:    
+        logger.info("User %s canceled their subscription.", user.first_name)
+        await update.message.reply_text(
+            # subscription cancel message
+            "Subscription cancelled.\nThank you for using Ocean.",
+            reply_markup=ReplyKeyboardRemove()
+        )
+    else:
+        # subscription not found
+        logger.info("User %s tried to cancel their subscription but it was not found.", user.first_name)
+        await update.message.reply_text(
+            "Subscription not found.\nYou can't cancel a subscription that you don't have.\nIf you want to subscribe, please reply with /start.",
+        )
+
 async def error_handler(update: Update, context: CallbackContext):
     """Log the error and handle it gracefully"""
     logger.error(msg="Exception occurred", exc_info=context.error)
@@ -208,7 +228,10 @@ def main():
             ],
             SUBSCRIPTION: [MessageHandler(filters.TEXT, subscription_optin)]
         },
-        fallbacks=[CommandHandler("cancel", cancel)]
+        fallbacks=[
+            CommandHandler("cancel", cancel),
+            CommandHandler("cancel subscription", cancel_sub)
+        ],
     )
     # Commands
     application.add_handler(conv_handler)
