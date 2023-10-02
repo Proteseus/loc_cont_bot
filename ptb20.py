@@ -155,6 +155,7 @@ async def cancel(update: Update, context: CallbackContext) -> int:
 async def cancel_sub(update: Update, context: CallbackContext) -> int:
     """Cancels and ends the conversation."""
     user = update.message.from_user
+    logger.info("User %s wants to cancel their subscription.", f"{user.first_name}: {user.id}")
     
     sub = delete_order(user.id)
     
@@ -220,12 +221,8 @@ def main():
         states={
             DETAILS: [MessageHandler(filters.TEXT, details)],
             LOCATION: [MessageHandler(filters.LOCATION, location)],
-            CONTACT: [
-                MessageHandler(filters.CONTACT, contact),
-            ],
-            MORE_CONTACT: [
-                MessageHandler(filters.TEXT, more_contact),
-            ],
+            CONTACT: [MessageHandler(filters.CONTACT, contact)],
+            MORE_CONTACT: [MessageHandler(filters.TEXT, more_contact)],
             SUBSCRIPTION: [MessageHandler(filters.TEXT, subscription_optin)]
         },
         fallbacks=[
