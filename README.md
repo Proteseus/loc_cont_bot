@@ -13,6 +13,8 @@ This repository contains the code for a Telegram bot implemented in Python. The 
 
    ```env
    TOKEN = "TELEGRAM_BOT_TOKEN"
+   USERNAME="TELEGRAM_USER_TO_SEND_TO"
+   SQLALCHEMY_DATABASE_URI="sqlite:///db/database.db"
    ```
 
 2. Run the bot:
