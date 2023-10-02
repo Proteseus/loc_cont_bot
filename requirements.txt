@@ -2,5 +2,3 @@ python-telegram-bot
 schedule
 python-dotenv
 sqlalchemy
-mysql-connector-python
-psycopg2-binary==2.8.6
