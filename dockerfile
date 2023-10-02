@@ -9,6 +9,9 @@ ADD . /usr/src/app/
 # Install any needed packages specified in requirements.txt
 RUN pip install -r requirements.txt
 
+# Define an environment variable for the SQLite database path
+ENV DB_PATH /usr/src/app/db/database.db
+
 # Install any needed packages specified in requirements.txt
 RUN pip install schedule
 
