@@ -17,8 +17,15 @@ This repository contains the code for a Telegram bot implemented in Python. The 
 
 2. Run the bot:
 
+   To run the bot you'll need to use the following command to build the container:
+
+   ``` bash
+    docker buildx build -t order_book_bot .
    ```
-   python bot.py
+   Run the following to run the container with persistent volumes `/db` and `.env`
+
+   ``` bash
+   docker run -v $(pwd)/db:/app/db -v $(pwd)/.env:/app/.env -d --name order_book_bot order_book_bot:latest
    ```
 
 ### Features
