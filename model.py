@@ -1,8 +1,10 @@
 import uuid
+from datetime import datetime, timedelta, timezone
 from sqlalchemy import Column, Integer, String, DECIMAL
 from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
+aa = timezone(timedelta(hours=3))
 
 class Order(Base):
     __tablename__ = 'order'
@@ -17,6 +19,8 @@ class Order(Base):
     latitude = Column(DECIMAL)
     longitude = Column(DECIMAL)
     order_count = Column(Integer)
+    subscription_date = Column(DATE, default=datetime.now(tz=aa).date())
+
     
     def __init__(self, username, fName, lName, primary_phone, secondary_phone, address_details, latitude, longitude):
         self.username = username
