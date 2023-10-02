@@ -9,12 +9,14 @@ from model import Order
 
 from telegram import Bot
 from telegram.ext import Updater
+from sqlalchemy import func
 
 load_dotenv()
 
+
 def check_subscribers():
-    today = datetime.today().date()
-    subscribers = session.query(Order).filter(Order.subscription_date == today).all()
+    today = datetime.today().strftime('%d')
+    subscribers = session.query(Order).filter(func.strftime('%d', Order.subscription_date) == today).all()
     if subscribers:
         return get_subscribers(subscribers)
 
