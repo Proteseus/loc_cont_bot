@@ -152,7 +152,7 @@ async def cancel(update: Update, context: CallbackContext) -> int:
     )
     return ConversationHandler.END
 
-async def cancel_sub(update: Update, context: CallbackContext) -> int:
+async def cancel_sub(update: Update, context: CallbackContext):
     """Cancels and ends the conversation."""
     user = update.message.from_user
     logger.info("User %s wants to cancel their subscription.", f"{user.first_name}: {user.id}")
@@ -216,6 +216,7 @@ def main():
     # bot runner
     application = Application.builder().token(TOKEN).build()
 
+    # Commands
     conv_handler = ConversationHandler(
         entry_points=[CommandHandler('start', start)],
         states={
@@ -225,12 +226,10 @@ def main():
             MORE_CONTACT: [MessageHandler(filters.TEXT, more_contact)],
             SUBSCRIPTION: [MessageHandler(filters.TEXT, subscription_optin)]
         },
-        fallbacks=[
-            CommandHandler("cancel", cancel),
-            CommandHandler("cancel_subscription", cancel_sub)
-        ],
+        fallbacks=[CommandHandler("cancel", cancel)],
     )
-    # Commands
+    
+    application.add_handler(CommandHandler('cancel_subscription', cancel_sub))
     application.add_handler(conv_handler)
 
     # Run bot
