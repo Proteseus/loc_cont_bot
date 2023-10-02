@@ -17,7 +17,7 @@ def check_subscribers():
 schedule.every().day.at("21:00").do(run_reports)
 
 # Schedule the task to run at 6AM
-schedule.every().day.at("13:07:00").do(check_subscribers)
+schedule.every().day.at("03:00").do(check_subscribers)
 
 while True:
     schedule.run_pending()
