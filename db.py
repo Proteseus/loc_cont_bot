@@ -1,5 +1,5 @@
 import os
-from model import Order, Base
+from model import Order, Trackable, Base
 
 from dotenv import load_dotenv
 from sqlalchemy import create_engine, event, inspect
@@ -21,8 +21,8 @@ if not os.path.exists(db_uri):
 
 session = Session()
 
-def create_user_order(username, fName, lName: None, primary_phone, secondary_phone: None, address_details, latitude, longitude):
-    order = Order(username, fName, lName, primary_phone, secondary_phone, address_details, latitude, longitude)
+def create_user_order(username, fName, lName: None, primary_phone, secondary_phone: None, address_details, latitude, longitude, subscription_type):
+    order = Order(username, fName, lName, primary_phone, secondary_phone, address_details, latitude, longitude, subscription_type)
     session.add(order)
     session.commit()
     return order
@@ -41,3 +41,12 @@ def delete_order(username):
         return {"user": order.username, "order_count": order.order_count}
     else:
         return False
+
+def track(order_id):
+    tracker = Trackable(order_id)
+    tracker.id = Trackable.generate_id()
+    session.add(tracker)
+    session.commit()
+    return tracker.id
+
+
