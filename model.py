@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime, timedelta, timezone
-from sqlalchemy import Column, Integer, String, DECIMAL, DATE
+from sqlalchemy import Column, Integer, String, DECIMAL, DATE, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
@@ -19,10 +19,11 @@ class Order(Base):
     latitude = Column(DECIMAL)
     longitude = Column(DECIMAL)
     order_count = Column(Integer)
+    subscription = Column(String(10), default='No')
     subscription_date = Column(DATE, default=datetime.now(tz=aa).date())
 
     
-    def __init__(self, username, fName, lName, primary_phone, secondary_phone, address_details, latitude, longitude):
+    def __init__(self, username, fName, lName, primary_phone, secondary_phone, address_details, latitude, longitude, subscription_type):
         self.username = username
         self.fName = fName
         self.lName = lName
@@ -32,6 +33,21 @@ class Order(Base):
         self.latitude = latitude
         self.longitude = longitude
         self.order_count = 1
+        self.subscription = subscription_type
     
     def add_order(self):
         self.order_count += 1
+
+class Trackable(Base):
+    __tablename__ = 'trackable'    
+    id = Column(Integer, primary_key=True)
+    order_id = Column(String, ForeignKey('order.id'))
+    date = Column(DATE, default=datetime.now(tz=aa).date())
+
+    def __init__(self, order_id):
+        self.order_id = order_id
+
+    @staticmethod
+    def generate_id():
+        # Generate a unique 4-digit numeric id without preceding zeros
+        return str(uuid.uuid4().int % 9000 + 1000)

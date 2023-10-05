@@ -5,7 +5,7 @@ import logging
 import tracemalloc
 from pprint import pprint
 from threading import Thread
-from db import create_user_order, add_order, delete_order, session
+from db import create_user_order, add_order, delete_order, track, session
 from model import Order, Base
 
 from dotenv import load_dotenv
@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 queue_ = queue.Queue()
 
-LOCATION, DETAILS, CONTACT, MORE_CONTACT, SUBSCRIPTION = range(5)
+LOCATION, DETAILS, CONTACT, MORE_CONTACT, SUBSCRIPTION, SUBSCRIPTION_TYPE = range(6)
 
 async def start(update: Update, context: CallbackContext) -> int:
     order = session.query(Order).filter(Order.username == update.effective_user.id).first()
@@ -36,7 +36,7 @@ async def start(update: Update, context: CallbackContext) -> int:
             "Order has been recieved, we'll call to confirm.\nThank you for choosing us.",
             reply_markup=ReplyKeyboardRemove()
         )
-        key_mapping = {'username': 'user_id', 'fName': 'fName', 'lName': 'lName', 'primary_phone': 'phone', 'secondary_phone': 's_phone', 'address_details': 'add_details', 'latitude': 'latitude','longitude': 'longitude', 'order_count': 'count'}
+        key_mapping = {'username': 'user_id', 'fName': 'fName', 'lName': 'lName', 'primary_phone': 'phone', 'secondary_phone': 's_phone', 'address_details': 'add_details', 'latitude': 'latitude','longitude': 'longitude', 'order_count': 'count', 'subscription':'subscription_type'}
         
         # Populate a dictionary with values from the model instance
         order_dict = {new_key: getattr(order, old_key) for old_key, new_key in key_mapping.items()}
@@ -109,14 +109,13 @@ async def more_contact(update: Update, context: CallbackContext) -> int:
     user_additional_contact = update.message.text
     context.user_data['more_contact'] = user_additional_contact
     logger.info("Additional contact: %s", user_additional_contact)
-
     
     subscribe = KeyboardButton(text="Subscribe")
     no = KeyboardButton(text="No")
     custom_keyboard = [[ subscribe, no ]]
     reply_markup = ReplyKeyboardMarkup(custom_keyboard, resize_keyboard=True)
     await update.message.reply_text(
-        'Hi! Would you like to subscribe to our ',
+        'Hi! Would you like to subscribe to our services:',
         reply_markup=reply_markup
     )
     
@@ -124,25 +123,37 @@ async def more_contact(update: Update, context: CallbackContext) -> int:
 
 async def subscription_optin(update: Update, context: CallbackContext) -> int:
     sub = update.effective_message.text
-    
-    order_details = {}
-    order_details['user_id'] = context.user_data['contact'].user_id
-    order_details['fName'] = context.user_data['contact'].first_name 
-    order_details['lName'] = context.user_data['contact'].last_name
-    order_details['phone'] = context.user_data['contact'].phone_number
-    order_details['s_phone'] = context.user_data['more_contact'] if 'more_contact' in context.user_data.keys() else None
-    order_details['add_details'] = context.user_data['details'].replace('\n', ' ')
-
-    # Get location 
-    order_details['latitude'] = context.user_data['location'].latitude 
-    order_details['longitude'] = context.user_data['location'].longitude
-    
     if sub == 'Subscribe':
-        order_details['subscription'] = 'Yes'
-        return await send_details(update, context, True, order_details)
+        context.user_data['subscription'] = 'Yes'
+        
+        weekly = KeyboardButton(text="Weekly")
+        bi_weekly = KeyboardButton(text="By-Weekly")
+        monthly = KeyboardButton(text="Monthly")
+        
+        custom_keyboard = [[ weekly, bi_weekly, monthly  ]]
+        reply_markup = ReplyKeyboardMarkup(custom_keyboard, resize_keyboard=True)
+        await update.message.reply_text(
+            'Pick your preffered subscription type:',
+            reply_markup=reply_markup
+        )
+        
+        return SUBSCRIPTION_TYPE
     elif sub == 'No':
-        order_details['subscription'] = 'No'
-        return await send_details(update, context, False, order_details)
+        context.user_data['subscription'] = 'No'
+        return await order_detail(update, context)
+
+async def subscription_type(update: Update, context: CallbackContext) -> int:
+    """Store subscription type"""
+    sub_type = update.effective_message.text
+    context.user_data['subscription_type'] = sub_type
+    logger.info("Subscription type: %s", sub_type)
+
+    await update.message.reply_text(
+        'Thank you for subscribing to Ocean. We will call you back to confirm your subscription.',
+        reply_markup=ReplyKeyboardRemove()
+    )
+    
+    return await order_detail(update, context)
 
 async def cancel(update: Update, context: CallbackContext) -> int:
     """Cancels and ends the conversation."""
@@ -180,19 +191,57 @@ async def error_handler(update: Update, context: CallbackContext):
     logger.error(msg="Exception occurred", exc_info=context.error)
     await update.message.reply_text('Sorry, an error occurred. Please try again.')
 
+async def order_detail(update: Update, context: CallbackContext) -> int:
+    """Store details and pass them to admins"""
+    order_details = {}
+    order_details['user_id'] = context.user_data['contact'].user_id
+    order_details['fName'] = context.user_data['contact'].first_name 
+    order_details['lName'] = context.user_data['contact'].last_name
+    order_details['phone'] = context.user_data['contact'].phone_number
+    order_details['s_phone'] = context.user_data['more_contact'] if 'more_contact' in context.user_data.keys() else None
+    order_details['add_details'] = context.user_data['details'].replace('\n', ' ')
+
+    # Get location 
+    order_details['latitude'] = context.user_data['location'].latitude 
+    order_details['longitude'] = context.user_data['location'].longitude
+    
+    # Get Subscription
+    order_details['subscription'] = context.user_data['subscription']
+    order_details['subscription_type'] = context.user_data['subscription_type'] if 'subscription_type' in context.user_data.keys() else None
+    
+    if order_details['subscription'] == 'Yes':
+        return await send_details(update, context, True, order_details)
+    else:
+        return await send_details(update, context, False, order_details)
 
 async def send_details(update: Update, context: CallbackContext, sub: False, order_details:dict) -> int:
+    if sub:
+        # Register user if they opt-in for a subscription
+        order = create_user_order(order_details['user_id'], order_details['fName'], order_details['lName'], order_details['phone'], order_details['s_phone'], order_details['add_details'], order_details['latitude'], order_details['longitude'], order_details['subscription_type'])
+        logger.info("Subscription %s registered.", order.id)
+        
+        await update.message.reply_text(
+            "Thank you for subscribing",
+            reply_markup=ReplyKeyboardRemove())
+
+    tracker_id = track(order_details['user_id'])
+
+    await update.message.reply_text(
+        f"Your order #{tracker_id} has been submitted.\nWe'll be in touch!",
+        reply_markup=ReplyKeyboardRemove())
+    
     username = os.getenv('USERNAME')
     
-    message = "Name: {}\nPhone: {}\nAlt: {}\nDetails: {}\nSubscription: {}\n[Open in Map](https://maps.google.com/?q={},{})".format(
+    message = "Order: #{}\nName: {}\nPhone: {}\nAlt: {}\nDetails: {}\nSubscription: {}\nSubscription type: {}\n[Open in Map](https://maps.google.com/?q={},{})".format(
+        tracker_id,
         order_details['fName'] + (' ' + order_details['lName'] if order_details['lName'] is not None else ''),
         order_details['phone'],
         order_details['s_phone'],
         order_details['add_details'],
         order_details['subscription'],
+        order_details['subscription_type'] if order_details['subscription_type'] is not None else 'No',
         str(order_details['latitude']),
         str(order_details['longitude']))
-    
     
     # message = f"""Name: {fName + (' ' + lName if lName is not None else '')}\nPhone: {phone}\nAlt: {s_phone}\nDetails: {add_details}\nSubscription: {subscription}\n[Open in Map](https://maps.google.com/?q={latitude},{longitude})"""
     await context.bot.send_message(
@@ -201,16 +250,6 @@ async def send_details(update: Update, context: CallbackContext, sub: False, ord
         parse_mode='markdown'
     )
     logger.info("Order recieved and transmitted to %s.", username)
-    
-    if sub:
-        # Register user if they opt-in for a subscription
-        order = create_user_order(order_details['user_id'], order_details['fName'], order_details['lName'], order_details['phone'], order_details['s_phone'], order_details['add_details'], order_details['latitude'], order_details['longitude'])
-        logger.info("Subscription %s registered.", order.id)
-        await update.message.reply_text(
-            "Thank you for subscribing",
-            reply_markup=ReplyKeyboardRemove())
-    
-    await update.message.reply_text("Thank you, We'll be in touch!")
     return ConversationHandler.END
 
 ########################################################
@@ -226,7 +265,8 @@ def main():
             LOCATION: [MessageHandler(filters.LOCATION, location)],
             CONTACT: [MessageHandler(filters.CONTACT, contact)],
             MORE_CONTACT: [MessageHandler(filters.TEXT, more_contact)],
-            SUBSCRIPTION: [MessageHandler(filters.TEXT, subscription_optin)]
+            SUBSCRIPTION: [MessageHandler(filters.TEXT, subscription_optin)],
+            SUBSCRIPTION_TYPE: [MessageHandler(filters.TEXT, subscription_type)]
         },
         fallbacks=[CommandHandler("cancel", cancel)],
     )
