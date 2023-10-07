@@ -9,7 +9,7 @@ aa = timezone(timedelta(hours=3))
 class Order(Base):
     __tablename__ = 'order'
     
-    id = Column(String, primary_key=True, default=str(uuid.uuid4()))
+    id = Column(String, primary_key=True)
     username = Column(String(10))
     fName = Column(String, nullable=False)
     lName = Column(String, nullable=True)
@@ -19,11 +19,13 @@ class Order(Base):
     latitude = Column(DECIMAL)
     longitude = Column(DECIMAL)
     order_count = Column(Integer)
+    language = Column(String(10), default='English')
     subscription = Column(String(10), default='No')
     subscription_date = Column(DATE, default=datetime.now(tz=aa).date())
 
     
-    def __init__(self, username, fName, lName, primary_phone, secondary_phone, address_details, latitude, longitude, subscription_type):
+    def __init__(self, username, fName, lName, primary_phone, secondary_phone, address_details, latitude, longitude, lang, subscription_type):
+        self.id = self.generate_id()
         self.username = username
         self.fName = fName
         self.lName = lName
@@ -33,7 +35,13 @@ class Order(Base):
         self.latitude = latitude
         self.longitude = longitude
         self.order_count = 1
+        self.language = lang
         self.subscription = subscription_type
+    
+    @staticmethod
+    def generate_id():
+        # Generate a unique 4-digit numeric id without preceding zeros
+        return str(uuid.uuid4().int % 90000 + 10000)
     
     def add_order(self):
         self.order_count += 1
@@ -45,9 +53,10 @@ class Trackable(Base):
     date = Column(DATE, default=datetime.now(tz=aa).date())
 
     def __init__(self, order_id):
+        self.id = self.generate_id()
         self.order_id = order_id
 
     @staticmethod
     def generate_id():
         # Generate a unique 4-digit numeric id without preceding zeros
-        return str(uuid.uuid4().int % 9000 + 1000)
+        return str(uuid.uuid4().int % 900000 + 100000)

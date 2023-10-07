@@ -21,8 +21,8 @@ if not os.path.exists(db_uri):
 
 session = Session()
 
-def create_user_order(username, fName, lName: None, primary_phone, secondary_phone: None, address_details, latitude, longitude, subscription_type):
-    order = Order(username, fName, lName, primary_phone, secondary_phone, address_details, latitude, longitude, subscription_type)
+def create_user_order(username, fName, lName: None, primary_phone, secondary_phone: None, address_details, latitude, longitude, lang, subscription_type):
+    order = Order(username, fName, lName, primary_phone, secondary_phone, address_details, latitude, longitude, lang, subscription_type)
     session.add(order)
     session.commit()
     return order
@@ -44,7 +44,6 @@ def delete_order(username):
 
 def track(order_id):
     tracker = Trackable(order_id)
-    tracker.id = Trackable.generate_id()
     session.add(tracker)
     session.commit()
     return tracker.id
