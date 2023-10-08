@@ -11,7 +11,7 @@ from db import create_user_order, add_order, delete_order, track, session
 from model import Order, Base
 
 from dotenv import load_dotenv
-from telegram import Update, ReplyKeyboardMarkup, ReplyKeyboardRemove, KeyboardButton, Bot, InlineKeyboardButton, InlineKeyboardMarkup, BotCommand, MenuButtonCommands, MenuButton, BotCommandScopeChatMember, WebAppInfo
+from telegram import Update, ReplyKeyboardMarkup, ReplyKeyboardRemove, KeyboardButton, Bot, InlineKeyboardButton, InlineKeyboardMarkup, BotCommand, BotCommandScopeChat
 from telegram.ext import Application, CallbackContext, CallbackQueryHandler, CommandHandler, ConversationHandler, filters, MessageHandler, Updater
 
 load_dotenv()
@@ -24,7 +24,27 @@ queue_ = queue.Queue()
 
 LOCALIZER, LOCATION, DETAILS, CONTACT, MORE_CONTACT, SUBSCRIPTION, SUBSCRIPTION_TYPE = range(7)
 
-async def start(update: Update, context: CallbackContext) -> int:
+async def start(update: Update, context: CallbackContext):
+    if str(update.effective_chat.id) == os.getenv('USERNAME'):
+        await context.bot.set_my_commands(
+            commands=[
+                BotCommand('generate_report', 'Generate report'),
+                BotCommand('delete_subscriber', 'Delete subscriber')
+            ],
+            scope=BotCommandScopeChat(chat_id=update.effective_chat.id)
+        )
+    else:
+        await context.bot.set_my_commands(
+            commands=[
+                BotCommand("order_laundry", "order laundry" ),
+                BotCommand("cancel", "end conversation"),
+                BotCommand("cancel_subscription", "cancel subscription"),
+                BotCommand("about","info")
+            ],
+            scope=BotCommandScopeChat(chat_id=update.effective_chat.id)
+        )
+
+async def order_laundry(update: Update, context: CallbackContext) -> int:
     order = session.query(Order).filter(Order.username == update.effective_user.id).first()
     
     if str(update.effective_user.id) == os.getenv('USERNAME'):
@@ -514,7 +534,7 @@ def main():
     
     # Commands
     conv_handler = ConversationHandler(
-        entry_points=[CommandHandler('Order_Laundry', start)],
+        entry_points=[CommandHandler('Order_Laundry', order_laundry)],
         states={
             LOCALIZER: [MessageHandler(filters.TEXT, localizer)],
             DETAILS: [MessageHandler(filters.TEXT, details)],
@@ -527,6 +547,7 @@ def main():
         fallbacks=[CommandHandler("cancel", cancel)],
     )
     
+    application.add_handler(CommandHandler('start', start))
     application.add_handler(CommandHandler('cancel_subscription', cancel_sub))
     application.add_handler(conv_handler)
     application.add_handler(CommandHandler("get_chat_id", get_chat_id))
