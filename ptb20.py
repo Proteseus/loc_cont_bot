@@ -527,7 +527,7 @@ async def contact_us(update: Update, context: CallbackContext):
 
 async def change_language(update: Update, context: CallbackContext):
     """Change Language"""
-    order = session.query(Order).filter(Order.user_id == update.message.from_user.id).first()
+    order = session.query(Order).filter(Order.username == update.message.from_user.id).first()
     if order:
         Amharic = KeyboardButton(text="Amharic")
         English = KeyboardButton(text="English")
