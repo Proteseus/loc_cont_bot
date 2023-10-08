@@ -430,7 +430,11 @@ async def delete_subscriber(update: Update, context: CallbackContext):
     user_id = update.effective_user.id
     
     if str(user_id) == os.getenv('USERNAME'):
-        user = context.args[0]
+        try:
+            user = context.args[0]
+        except:
+            await update.message.reply_text("Please follow format:\n /delete_subscriber <user_id>.")
+            return ConversationHandler.END
         
         order = session.query(Order).filter(Order.username == user).first()
         if order:
@@ -616,6 +620,7 @@ def main():
     application.add_handler(CommandHandler("delete_subscriber", delete_subscriber))
     application.add_handler(CommandHandler("generate_report", generate_report))
     application.add_handler(CommandHandler("change_language", change_language))
+    application.add_handler(CommandHandler("contact_us", contact_us))
     application.add_handler(CommandHandler("about", about))
 
     # Run bot
