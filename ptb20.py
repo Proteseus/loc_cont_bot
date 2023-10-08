@@ -16,6 +16,7 @@ from telegram.ext import Application, CallbackContext, CallbackQueryHandler, Com
 
 load_dotenv()
 TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
+# TOKEN = os.getenv('TESTER')
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 logging.getLogger("httpx").setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)
@@ -69,11 +70,7 @@ async def order_laundry(update: Update, context: CallbackContext) -> int:
         
         return LOCALIZER
     else:
-        await update.message.reply_text(
-            "Order has been recieved, we'll call to confirm.\nThank you for choosing us.",
-            reply_markup=ReplyKeyboardRemove()
-        )
-        key_mapping = {'username': 'user_id', 'fName': 'fName', 'lName': 'lName', 'primary_phone': 'phone', 'secondary_phone': 's_phone', 'address_details': 'add_details', 'latitude': 'latitude','longitude': 'longitude', 'order_count': 'count', 'lang': 'lang','subscription':'subscription_type'}
+        key_mapping = {'username': 'user_id', 'Name': 'name', 'primary_phone': 'phone', 'secondary_phone': 's_phone', 'address_details': 'add_details', 'latitude': 'latitude','longitude': 'longitude', 'order_count': 'count', 'language': 'lang','subscription':'subscription_type'}
         
         # Populate a dictionary with values from the model instance
         order_dict = {new_key: getattr(order, old_key) for old_key, new_key in key_mapping.items()}
@@ -416,7 +413,6 @@ Call `4840` for any help
         str(order_details['longitude']),
         order_details['lang'])
     
-    # message = f"""Name: {fName + (' ' + lName if lName is not None else '')}\nPhone: {phone}\nAlt: {s_phone}\nDetails: {add_details}\nSubscription: {subscription}\n[Open in Map](https://maps.google.com/?q={latitude},{longitude})"""
     await context.bot.send_message(
         chat_id=username,
         text=message,
