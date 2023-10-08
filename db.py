@@ -21,8 +21,8 @@ if not os.path.exists(db_uri):
 
 session = Session()
 
-def create_user_order(username, fName, lName: None, primary_phone, secondary_phone: None, address_details, latitude, longitude, lang, subscription_type):
-    order = Order(username, fName, lName, primary_phone, secondary_phone, address_details, latitude, longitude, lang, subscription_type)
+def create_user_order(username, fName, primary_phone, secondary_phone: None, address_details, latitude, longitude, lang, subscription_type):
+    order = Order(username, fName, primary_phone, secondary_phone, address_details, latitude, longitude, lang, subscription_type)
     session.add(order)
     session.commit()
     return order
@@ -39,6 +39,15 @@ def delete_order(username):
         session.delete(order)
         session.commit()
         return {"user": order.username, "order_count": order.order_count}
+    else:
+        return False
+
+def change_lang(username, lang):
+    order = session.query(Order).filter(Order.username == username).first()
+    if order:
+        order.lang = lang
+        session.commit()
+        return {"user": order.username, "lang": order.lang}
     else:
         return False
 

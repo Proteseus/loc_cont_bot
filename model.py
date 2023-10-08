@@ -11,8 +11,7 @@ class Order(Base):
     
     id = Column(String, primary_key=True)
     username = Column(String(10))
-    fName = Column(String, nullable=False)
-    lName = Column(String, nullable=True)
+    Name = Column(String, nullable=False)
     primary_phone = Column(Integer)
     secondary_phone = Column(Integer, nullable=True)
     address_details = Column(String(255))
@@ -24,11 +23,10 @@ class Order(Base):
     subscription_date = Column(DATE, default=datetime.now(tz=aa).date())
 
     
-    def __init__(self, username, fName, lName, primary_phone, secondary_phone, address_details, latitude, longitude, lang, subscription_type):
+    def __init__(self, username, Name, primary_phone, secondary_phone, address_details, latitude, longitude, lang, subscription_type):
         self.id = self.generate_id()
         self.username = username
-        self.fName = fName
-        self.lName = lName
+        self.Name = Name
         self.primary_phone = primary_phone
         self.secondary_phone = secondary_phone
         self.address_details = address_details
@@ -45,6 +43,9 @@ class Order(Base):
     
     def add_order(self):
         self.order_count += 1
+    
+    def change_lang(self, lang):
+        self.language = lang
 
 class Trackable(Base):
     __tablename__ = 'trackable'    

@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 queue_ = queue.Queue()
 
-LOCALIZER, LOCATION, DETAILS, CONTACT, MORE_CONTACT, SUBSCRIPTION, SUBSCRIPTION_TYPE = range(7)
+LOCALIZER, LOCATION, NAME, DETAILS, CONTACT, MORE_CONTACT, SUBSCRIPTION, SUBSCRIPTION_TYPE = range(8)
 
 async def start(update: Update, context: CallbackContext):
     if str(update.effective_chat.id) == os.getenv('USERNAME'):
@@ -138,12 +138,33 @@ async def localizer(update: Update, context: CallbackContext) -> int:
     
     if lang == "English":
         await update.message.reply_text(
-        """✅ Please give us details below:\n\nName\nName of your area""",
+        """✅ Please give us details below:\n\nName""",
             reply_markup=ReplyKeyboardRemove()
         )
     else:
         await update.message.reply_text(
-        """ሙሉ ስም\nያሉበት ሰፈር ስም""",
+        """ሙሉ ስም""",
+            reply_markup=ReplyKeyboardRemove()
+        )
+    return NAME
+
+async def name(update: Update, context: CallbackContext) -> int:
+    """Store user name and ask for details"""
+    user_name = update.message.text
+    logger.info("Name: %s", user_name)
+    
+    context.user_data['name'] = user_name
+    
+    lang = context.user_data['lang']
+    
+    if lang == "English":
+        await update.message.reply_text(
+        """Name of your area""",
+            reply_markup=ReplyKeyboardRemove()
+        )
+    else:
+        await update.message.reply_text(
+        """ያሉበት ሰፈር ስም""",
             reply_markup=ReplyKeyboardRemove()
         )
         
@@ -321,8 +342,7 @@ async def order_detail(update: Update, context: CallbackContext) -> int:
     """Store details and pass them to admins"""
     order_details = {}
     order_details['user_id'] = context.user_data['contact'].user_id
-    order_details['fName'] = context.user_data['contact'].first_name 
-    order_details['lName'] = context.user_data['contact'].last_name
+    order_details['name'] = context.user_data['name']
     order_details['phone'] = context.user_data['contact'].phone_number
     order_details['s_phone'] = context.user_data['more_contact'] if 'more_contact' in context.user_data.keys() else None
     order_details['add_details'] = context.user_data['details'].replace('\n', ' ')
@@ -344,7 +364,7 @@ async def order_detail(update: Update, context: CallbackContext) -> int:
 async def send_details(update: Update, context: CallbackContext, sub: False, order_details:dict) -> int:
     if sub:
         # Register user if they opt-in for a subscription
-        order = create_user_order(order_details['user_id'], order_details['fName'], order_details['lName'], order_details['phone'], order_details['s_phone'], order_details['add_details'], order_details['latitude'], order_details['longitude'], order_details['lang'], order_details['subscription_type'])
+        order = create_user_order(order_details['user_id'], order_details['name'], order_details['phone'], order_details['s_phone'], order_details['add_details'], order_details['latitude'], order_details['longitude'], order_details['lang'], order_details['subscription_type'])
         logger.info("Subscription %s registered.", order.id)
         
         await update.message.reply_text(
@@ -386,7 +406,7 @@ Call `4840` for any help
     
     message = "Order: #{}\nName: {}\nPhone: {}\nAlt: {}\nDetails: {}\nSubscription: {}\nSubscription type: {}\n[Open in Map](https://maps.google.com/?q={},{})".format(
         tracker_id,
-        order_details['fName'] + (' ' + order_details['lName'] if order_details['lName'] is not None else ''),
+        order_details['name'],
         order_details['phone'],
         order_details['s_phone'],
         order_details['add_details'],
@@ -570,6 +590,7 @@ def main():
         entry_points=[CommandHandler('Order_Laundry', order_laundry)],
         states={
             LOCALIZER: [MessageHandler(filters.TEXT & ~filters.COMMAND, localizer)],
+            NAME: [MessageHandler(filters.TEXT & ~filters.COMMAND, name)],
             DETAILS: [MessageHandler(filters.TEXT & ~filters.COMMAND, details)],
             LOCATION: [MessageHandler(filters.LOCATION, location)],
             CONTACT: [MessageHandler(filters.CONTACT, contact)],
