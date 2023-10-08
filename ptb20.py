@@ -536,13 +536,13 @@ def main():
     conv_handler = ConversationHandler(
         entry_points=[CommandHandler('Order_Laundry', order_laundry)],
         states={
-            LOCALIZER: [MessageHandler(filters.TEXT & ~Filters.command, localizer)],
-            DETAILS: [MessageHandler(filters.TEXT & ~Filters.command, details)],
+            LOCALIZER: [MessageHandler(filters.TEXT & ~filters.COMMAND, localizer)],
+            DETAILS: [MessageHandler(filters.TEXT & ~filters.COMMAND, details)],
             LOCATION: [MessageHandler(filters.LOCATION, location)],
             CONTACT: [MessageHandler(filters.CONTACT, contact)],
-            MORE_CONTACT: [MessageHandler(filters.TEXT & ~Filters.command, more_contact)],
-            SUBSCRIPTION: [MessageHandler(filters.TEXT & ~Filters.command, subscription_optin)],
-            SUBSCRIPTION_TYPE: [MessageHandler(filters.TEXT & ~Filters.command, subscription_type)]
+            MORE_CONTACT: [MessageHandler(filters.TEXT & ~filters.COMMAND, more_contact)],
+            SUBSCRIPTION: [MessageHandler(filters.TEXT & ~filters.COMMAND, subscription_optin)],
+            SUBSCRIPTION_TYPE: [MessageHandler(filters.TEXT & ~filters.COMMAND, subscription_type)]
         },
         fallbacks=[CommandHandler("cancel", cancel)],
     )
