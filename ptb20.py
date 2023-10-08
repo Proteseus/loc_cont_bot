@@ -116,7 +116,7 @@ async def localizer(update: Update, context: CallbackContext) -> int:
     
     if lang == "English":
         await update.message.reply_text(
-        """Name\nSecondary phone\nName of your area""",
+        """Name\nName of your area""",
             reply_markup=ReplyKeyboardRemove()
         )
     else:
