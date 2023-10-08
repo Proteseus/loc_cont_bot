@@ -527,17 +527,24 @@ async def contact_us(update: Update, context: CallbackContext):
 
 async def change_language(update: Update, context: CallbackContext):
     """Change Language"""
-    Amharic = KeyboardButton(text="Amharic")
-    English = KeyboardButton(text="English")
-    
-    custom_keyboard = [[ Amharic, English ]]
-    reply_markup = ReplyKeyboardMarkup(custom_keyboard, resize_keyboard=True)
-    await update.message.reply_text(
-        'Pick your preffered language:',
-        reply_markup=reply_markup
-    )
-    
-    return change_language_set(update, context)
+    order = session.query(Order).filter(Order.user_id == update.message.from_user.id).first()
+    if order:
+        Amharic = KeyboardButton(text="Amharic")
+        English = KeyboardButton(text="English")
+        
+        custom_keyboard = [[ Amharic, English ]]
+        reply_markup = ReplyKeyboardMarkup(custom_keyboard, resize_keyboard=True)
+        await update.message.reply_text(
+            'Pick your preffered language:',
+            reply_markup=reply_markup
+        )
+        
+        return await change_language_set(update, context)
+    else:
+        await update.message.reply_text(
+            "You need to make an order first."
+        )
+        return ConversationHandler.END
 
 async def change_language_set(update: Update, context: CallbackContext):
     lang = update.message.text
