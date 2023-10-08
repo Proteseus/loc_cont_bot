@@ -210,9 +210,9 @@ async def more_contact(update: Update, context: CallbackContext) -> int:
     user_additional_contact = update.message.text
     
     # regex to accept only numbers
-    if not user_additional_contact.isnumeric():
+    if not user_additional_contact.isnumeric() or len(user_additional_contact) != 10:
         await update.message.reply_text(
-            "Invalid input. Please enter only numbers."
+            "Invalid input. Please enter a 10-digit number."
         )
         logger.info("Invalid input: %s", user_additional_contact)
         
@@ -536,13 +536,13 @@ def main():
     conv_handler = ConversationHandler(
         entry_points=[CommandHandler('Order_Laundry', order_laundry)],
         states={
-            LOCALIZER: [MessageHandler(filters.TEXT, localizer)],
-            DETAILS: [MessageHandler(filters.TEXT, details)],
+            LOCALIZER: [MessageHandler(filters.TEXT & ~Filters.command, localizer)],
+            DETAILS: [MessageHandler(filters.TEXT & ~Filters.command, details)],
             LOCATION: [MessageHandler(filters.LOCATION, location)],
             CONTACT: [MessageHandler(filters.CONTACT, contact)],
-            MORE_CONTACT: [MessageHandler(filters.TEXT, more_contact)],
-            SUBSCRIPTION: [MessageHandler(filters.TEXT, subscription_optin)],
-            SUBSCRIPTION_TYPE: [MessageHandler(filters.TEXT, subscription_type)]
+            MORE_CONTACT: [MessageHandler(filters.TEXT & ~Filters.command, more_contact)],
+            SUBSCRIPTION: [MessageHandler(filters.TEXT & ~Filters.command, subscription_optin)],
+            SUBSCRIPTION_TYPE: [MessageHandler(filters.TEXT & ~Filters.command, subscription_type)]
         },
         fallbacks=[CommandHandler("cancel", cancel)],
     )
@@ -553,7 +553,6 @@ def main():
     application.add_handler(CommandHandler("get_chat_id", get_chat_id))
     application.add_handler(CommandHandler("delete_subscriber", delete_subscriber))
     application.add_handler(CommandHandler("generate_report", generate_report))
-    # application.add_handler(CommandHandler("subscription", subscription))
     application.add_handler(CommandHandler("about", about))
 
     # Run bot
