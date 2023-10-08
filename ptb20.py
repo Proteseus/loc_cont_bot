@@ -455,7 +455,8 @@ async def delete_subscriber(update: Update, context: CallbackContext):
 async def generate_report(update: Update, context: CallbackContext):
     """Generate report"""
     if str(update.effective_user.id) == os.getenv('USERNAME'):
-        order = session.query(Order).filter(Order.username == update.effective_user.id).first()
+        order = session.query(Order)
+        
         if order:
             subprocess.run(['python3', 'reports.py'])
             logger.info("Report generated.")
