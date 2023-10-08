@@ -7,7 +7,7 @@ from pprint import pprint
 from threading import Thread
 import subprocess
 
-from db import create_user_order, add_order, delete_order, track, session
+from db import create_user_order, add_order, delete_order, change_lang, track, session
 from model import Order, Base
 
 from dotenv import load_dotenv
@@ -38,6 +38,8 @@ async def start(update: Update, context: CallbackContext):
             commands=[
                 BotCommand("order_laundry", "order laundry" ),
                 BotCommand("cancel", "end conversation"),
+                BotCommand("change_language", "change language"),
+                BotCommand("contact_us", "contact us"),
                 BotCommand("cancel_subscription", "cancel subscription"),
                 BotCommand("about","info")
             ],
@@ -493,16 +495,47 @@ chat_id=update.effective_chat.id,
 parse_mode='Markdown'
     )
 
-async def subscription(update: Update, context: CallbackContext) -> int:
-    """Sends a message with "about" info"""
+async def contact_us(update: Update, context: CallbackContext):
+    """Contact Us"""
+    user_id = update.message.from_user.id
     await context.bot.send_message(
-    text="""
-    # Subscription
-
-    """,
-    parse_mode='Markdown',
-    chat_id=update.effective_chat.id
+        chat_id=user_id,
+        text="Please contact us at [Ocean Support](https://t.me/Ocean_bot).",
+        parse_mode="markdown"
     )
+
+
+async def change_language(update: Update, context: CallbackContext):
+    """Change Language"""
+    Amharic = KeyboardButton(text="Amharic")
+    English = KeyboardButton(text="English")
+    
+    custom_keyboard = [[ Amharic, English ]]
+    reply_markup = ReplyKeyboardMarkup(custom_keyboard, resize_keyboard=True)
+    await update.message.reply_text(
+        'Pick your preffered language:',
+        reply_markup=reply_markup
+    )
+    
+    return change_language_set(update, context)
+
+async def change_language_set(update: Update, context: CallbackContext):
+    lang = update.message.text
+    user_id = update.message.from_user.id
+    
+    lang_change = change_lang(user_id, lang)
+    
+    if lang_change:
+        logger.info("Language changed to %s for user %s.", lang, user_id)
+        if lang == 'Amharic':
+            await update.message.reply_text(
+                "ቋንቋ በአማርኛ ተቀይሯል።"                
+            )
+        else:
+            await update.message.reply_text(
+                "Language changed to English."
+            )
+
 
 async def cancel(update: Update, context: CallbackContext) -> int:
     """Cancels and ends the conversation."""
@@ -553,6 +586,7 @@ def main():
     application.add_handler(CommandHandler("get_chat_id", get_chat_id))
     application.add_handler(CommandHandler("delete_subscriber", delete_subscriber))
     application.add_handler(CommandHandler("generate_report", generate_report))
+    application.add_handler(CommandHandler("change_language", change_language))
     application.add_handler(CommandHandler("about", about))
 
     # Run bot
