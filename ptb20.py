@@ -116,7 +116,7 @@ async def localizer(update: Update, context: CallbackContext) -> int:
     
     if lang == "English":
         await update.message.reply_text(
-        """Name\nName of your area""",
+        """✅ Please give us details below:\n\nName\nName of your area""",
             reply_markup=ReplyKeyboardRemove()
         )
     else:
@@ -514,7 +514,7 @@ def main():
     
     # Commands
     conv_handler = ConversationHandler(
-        entry_points=[CommandHandler('start', start)],
+        entry_points=[CommandHandler('Order_Laundry', start)],
         states={
             LOCALIZER: [MessageHandler(filters.TEXT, localizer)],
             DETAILS: [MessageHandler(filters.TEXT, details)],
