@@ -369,6 +369,14 @@ async def send_details(update: Update, context: CallbackContext, sub: False, ord
             reply_markup=ReplyKeyboardRemove())
 
     tracker_id = track(order_details['user_id'])
+    
+    reorder_ = ReplyKeyboardMarkup(
+        keyboard=[
+            [KeyboardButton(text="Reorder")]
+        ],
+        resize_keyboard=True,
+        one_time_keyboard=True
+    )
 
     await update.message.reply_text(
         text=f"""
@@ -397,7 +405,7 @@ Save time and your sanity when you leave the dry cleaning errands to us.
 Call `4840` for any help
         """,
         parse_mode='markdown',
-        reply_markup=ReplyKeyboardRemove())
+        reply_markup=reorder_)
     
     username = os.getenv('USERNAME')
     
@@ -419,7 +427,14 @@ Call `4840` for any help
         parse_mode='markdown'
     )
     logger.info("Order recieved and transmitted to %s.", username)
+    
     return ConversationHandler.END
+
+async def reorder(update: Update, context: CallbackContext):
+    """Reorder"""
+    if update.effective_message.text == 'Reorder':
+        return await order_laundry(update, context)
+
 
 async def delete_subscriber(update: Update, context: CallbackContext):
     """Delete subscriber"""
@@ -525,7 +540,6 @@ async def contact_us(update: Update, context: CallbackContext):
         parse_mode="markdown"
     )
 
-
 async def change_language(update: Update, context: CallbackContext):
     """Change Language"""
     order = session.query(Order).filter(Order.username == update.message.from_user.id).first()
@@ -610,6 +624,7 @@ def main():
     )
     
     application.add_handler(CommandHandler('start', start))
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, reorder))
     application.add_handler(CommandHandler('cancel_subscription', cancel_sub))
     application.add_handler(conv_handler)
     application.add_handler(CommandHandler("get_chat_id", get_chat_id))
