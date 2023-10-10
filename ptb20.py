@@ -216,31 +216,53 @@ async def contact(update: Update, context: CallbackContext) -> int:
 
     context.user_data['contact'] = user_contact
     logger.info("Contact %s: %s", user_contact.first_name, user_contact.phone_number)
-
+    
+    yes_button = KeyboardButton(text="Yes")
+    no_button = KeyboardButton(text="No")
+    custom_keyboard.append([yes_button, no_button])
+    reply_markup = ReplyKeyboardMarkup(custom_keyboard, resize_keyboard=True)
+    
     await update.message.reply_text(
-        """If you wish to add another number for pickup by a different person or if we can't reach you on the first number. 
-        Just the number in 09xxxxxxxx format.""",
-        reply_markup=ReplyKeyboardRemove()
+        'Would you like to add an alternative number?',
+        reply_markup=reply_markup
     )
     
+    return await more_contact_confim(update, context)
+
+async def more_contact_confim(update: Update, context: CallbackContext) -> int:
+    if update.message.text == 'Yes':
+        await update.message.reply_text(
+            """Add another number for pickup by a different person or if we can't reach you on the first number. 
+            Just the number in 09xxxxxxxx format.""",
+            reply_markup=ReplyKeyboardRemove()
+        )
+        logger.info("Additional contact required")
+
+    elif update.message.text == 'No':
+        context.user_data['more_contact'] = 'No'
+        
     return MORE_CONTACT
 
 async def more_contact(update: Update, context: CallbackContext) -> int:
     """Store additional contact and end conversation"""
-    user_additional_contact = update.message.text
-    
-    # regex to accept only numbers
-    if not user_additional_contact.isnumeric() or len(user_additional_contact) != 10:
-        await update.message.reply_text(
-            "Invalid input. Please enter a 10-digit number."
-        )
-        logger.info("Invalid input: %s", user_additional_contact)
+    if context.user_data['more_contact'] != 'No':
+        user_additional_contact = update.message.text
         
-        return MORE_CONTACT
-    
-    context.user_data['more_contact'] = user_additional_contact
-    logger.info("Additional contact: %s", user_additional_contact)
-    
+        # regex to accept only numbers
+        if not user_additional_contact.isnumeric() or len(user_additional_contact) != 10:
+            await update.message.reply_text(
+                "Invalid input. Please enter a 10-digit number."
+            )
+            logger.info("Invalid input: %s", user_additional_contact)
+            
+            return MORE_CONTACT
+        
+        context.user_data['more_contact'] = user_additional_contact
+        logger.info("Additional contact: %s", user_additional_contact)
+    else:
+        context.user_data['more_contact'] = None
+        logger.info("No additional contact")
+        
     subscribe = KeyboardButton(text="Subscribe")
     no = KeyboardButton(text="No")
     custom_keyboard = [[ subscribe, no ]]
