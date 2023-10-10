@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 queue_ = queue.Queue()
 
-LOCALIZER, LOCATION, NAME, DETAILS, CONTACT, MORE_CONTACT, SUBSCRIPTION, SUBSCRIPTION_TYPE = range(8)
+LOCALIZER, LOCATION, NAME, DETAILS, CONTACT, MORE_CONTACT_CONFIRM, MORE_CONTACT, SUBSCRIPTION, SUBSCRIPTION_TYPE = range(9)
 
 async def start(update: Update, context: CallbackContext):
     if str(update.effective_chat.id) == os.getenv('USERNAME'):
@@ -45,6 +45,12 @@ async def start(update: Update, context: CallbackContext):
                 BotCommand("about","info")
             ],
             scope=BotCommandScopeChat(chat_id=update.effective_chat.id)
+        )
+        
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text="Use /order_laundry to start order.\nUse /cancel to end conversation with our bot at any time",
+            reply_markup=ReplyKeyboardRemove()
         )
 
 async def order_laundry(update: Update, context: CallbackContext) -> int:
@@ -215,11 +221,11 @@ async def contact(update: Update, context: CallbackContext) -> int:
         return CONTACT
 
     context.user_data['contact'] = user_contact
-    logger.info("Contact %s: %s", user_contact.first_name, user_contact.phone_number)
+    logger.info("Contact %s: %s", user_contact.first_name, user_contact.phone_number)    
     
     yes_button = KeyboardButton(text="Yes")
     no_button = KeyboardButton(text="No")
-    custom_keyboard.append([yes_button, no_button])
+    custom_keyboard = [[yes_button, no_button]]
     reply_markup = ReplyKeyboardMarkup(custom_keyboard, resize_keyboard=True)
     
     await update.message.reply_text(
@@ -227,10 +233,12 @@ async def contact(update: Update, context: CallbackContext) -> int:
         reply_markup=reply_markup
     )
     
-    return await more_contact_confim(update, context)
+    return MORE_CONTACT_CONFIRM
 
-async def more_contact_confim(update: Update, context: CallbackContext) -> int:
-    if update.message.text == 'Yes':
+async def more_contact_confirm(update: Update, context: CallbackContext) -> int:
+    if update.effective_message.text == 'Yes':
+        context.user_data['more_contact'] = 'Yes'
+        
         await update.message.reply_text(
             """Add another number for pickup by a different person or if we can't reach you on the first number. 
             Just the number in 09xxxxxxxx format.""",
@@ -238,7 +246,7 @@ async def more_contact_confim(update: Update, context: CallbackContext) -> int:
         )
         logger.info("Additional contact required")
 
-    elif update.message.text == 'No':
+    else:
         context.user_data['more_contact'] = 'No'
         
     return MORE_CONTACT
@@ -638,6 +646,7 @@ def main():
             DETAILS: [MessageHandler(filters.TEXT & ~filters.COMMAND, details)],
             LOCATION: [MessageHandler(filters.LOCATION, location)],
             CONTACT: [MessageHandler(filters.CONTACT, contact)],
+            MORE_CONTACT_CONFIRM: [MessageHandler(filters.TEXT & ~filters.COMMAND, more_contact_confirm)],
             MORE_CONTACT: [MessageHandler(filters.TEXT & ~filters.COMMAND, more_contact)],
             SUBSCRIPTION: [MessageHandler(filters.TEXT & ~filters.COMMAND, subscription_optin)],
             SUBSCRIPTION_TYPE: [MessageHandler(filters.TEXT & ~filters.COMMAND, subscription_type)]
