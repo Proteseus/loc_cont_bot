@@ -624,7 +624,7 @@ def main():
     )
     
     application.add_handler(CommandHandler('start', start))
-    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, reorder))
+    application.add_handler(MessageHandler(filters.Regex(r'^(Reorder)$'), reorder))
     application.add_handler(CommandHandler('cancel_subscription', cancel_sub))
     application.add_handler(conv_handler)
     application.add_handler(CommandHandler("get_chat_id", get_chat_id))
