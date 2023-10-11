@@ -634,6 +634,13 @@ async def skip_order(update: Update, context: CallbackContext):
         "Order skipped.",
         reply_markup=ReplyKeyboardRemove()
     )
+    
+    await context.bot.send_message(
+        chat_id=os.getenv('USERNAME'),
+        text=f"Order skipped for this cycle only by subscriber  {user_id}.",
+        parse_mode='markdown'
+    )
+    
     return ConversationHandler.END
 
 async def sub_notice_handle(update: Update, context: CallbackContext):
