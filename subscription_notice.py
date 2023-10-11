@@ -76,4 +76,4 @@ def get_subscribers(subscribers):
 if __name__ == '__main__':
     subs = check_subscribers()
     asyncio.run(send_to_admin(format_subscribers(subs)))
-    asyncio.run(send_to_subscribers(format_subscribers(subs)))
+    asyncio.run(send_to_subscribers(subs))
