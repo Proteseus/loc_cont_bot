@@ -338,7 +338,6 @@ async def subscription_type(update: Update, context: CallbackContext) -> int:
 
 async def cancel_sub(update: Update, context: CallbackContext):
     """Cancels and ends the conversation."""
-    
     if str(update.effective_user.id) == os.getenv('USERNAME'):
         await update.message.reply_text(
             "ADMIN\n/generate_report\n/delete_subscriber",
@@ -627,6 +626,32 @@ async def cancel(update: Update, context: CallbackContext) -> int:
     )
     return ConversationHandler.END
 
+async def skip_order(update: Update, context: CallbackContext):
+    """Skip order"""
+    user_id = update.effective_user.id
+    logger.info("Order skipped for user %s.", user_id)
+    await update.message.reply_text(
+        "Order skipped.",
+        reply_markup=ReplyKeyboardRemove()
+    )
+    return ConversationHandler.END
+
+async def sub_notice_handle(update: Update, context: CallbackContext):
+    """Handle subscription notice"""
+    if update.effective_message.text == 'Accept':
+        return await order_laundry(update, context)
+    elif update.effective_message.text == 'Skip':
+        return await skip_order(update, context)
+    elif update.effective_message.text == 'Cancel':
+        return await cancel_sub(update, context)
+
+
+    user_id = update.effective_user.id
+    logger.info("Subscription notice sent to %s.", user_id)
+    if update.effective_message.text == 'Reorder':
+        return await order_laundry(update, context)
+
+
 async def error_handler(update: Update, context: CallbackContext):
     """Log the error and handle it gracefully"""
     logger.error(msg="Exception occurred", exc_info=context.error)
@@ -656,6 +681,7 @@ def main():
     
     application.add_handler(CommandHandler('start', start))
     application.add_handler(MessageHandler(filters.Regex(r'^(Reorder)$'), reorder))
+    application.add_handler(MessageHandler(filters.Regex(r'^(Accept|Cancel|Skip)$'), sub_notice_handle))
     application.add_handler(CommandHandler('cancel_subscription', cancel_sub))
     application.add_handler(conv_handler)
     application.add_handler(CommandHandler("get_chat_id", get_chat_id))
