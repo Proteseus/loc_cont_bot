@@ -245,15 +245,18 @@ async def more_contact_confirm(update: Update, context: CallbackContext) -> int:
             reply_markup=ReplyKeyboardRemove()
         )
         logger.info("Additional contact required")
-
+        return MORE_CONTACT
+    
     else:
-        context.user_data['more_contact'] = 'No'
+        logger.info("No additional contact provided.")
+        context.user_data['more_contact'] = None
         
-    return MORE_CONTACT
+        return await subscription_prompt(update, context)
 
 async def more_contact(update: Update, context: CallbackContext) -> int:
     """Store additional contact and end conversation"""
-    if context.user_data['more_contact'] != 'No':
+    print(context.user_data['more_contact'])
+    if context.user_data['more_contact'] == 'Yes':
         user_additional_contact = update.message.text
         
         # regex to accept only numbers
@@ -267,10 +270,10 @@ async def more_contact(update: Update, context: CallbackContext) -> int:
         
         context.user_data['more_contact'] = user_additional_contact
         logger.info("Additional contact: %s", user_additional_contact)
-    else:
-        context.user_data['more_contact'] = None
-        logger.info("No additional contact")
-        
+    
+    return await subscription_prompt(update, context)
+
+async def subscription_prompt(update: Update, context: CallbackContext) -> int:
     subscribe = KeyboardButton(text="Subscribe")
     no = KeyboardButton(text="No")
     custom_keyboard = [[ subscribe, no ]]
@@ -678,7 +681,7 @@ def main():
             DETAILS: [MessageHandler(filters.TEXT & ~filters.COMMAND, details)],
             LOCATION: [MessageHandler(filters.LOCATION, location)],
             CONTACT: [MessageHandler(filters.CONTACT, contact)],
-            MORE_CONTACT_CONFIRM: [MessageHandler(filters.TEXT & ~filters.COMMAND, more_contact_confirm)],
+            MORE_CONTACT_CONFIRM: [MessageHandler(filters.Regex(r'^(Yes|No)$') & ~filters.COMMAND, more_contact_confirm)],
             MORE_CONTACT: [MessageHandler(filters.TEXT & ~filters.COMMAND, more_contact)],
             SUBSCRIPTION: [MessageHandler(filters.TEXT & ~filters.COMMAND, subscription_optin)],
             SUBSCRIPTION_TYPE: [MessageHandler(filters.TEXT & ~filters.COMMAND, subscription_type)]
