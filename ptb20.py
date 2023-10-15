@@ -49,7 +49,7 @@ async def start(update: Update, context: CallbackContext):
         
         await context.bot.send_message(
             chat_id=update.effective_chat.id,
-            text="Use /order_laundry to start order.\nUse /cancel to end conversation with our bot at any time",
+            text="Use /order_laundry to start order.\nUse /cancel to end conversation with our bot at any time.\nMake sure you are in your home before you proceed.",
             reply_markup=ReplyKeyboardRemove()
         )
 
