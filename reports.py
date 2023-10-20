@@ -4,6 +4,7 @@ import csv
 import glob
 import time
 import asyncio
+from datetime import datetime, timedelta
 
 from db import create_user_order, add_order, session
 from model import Order, Trackable
@@ -35,7 +36,12 @@ def iterate_subscribers(csv_file_path_subs):
 
 def iterate_orders(csv_file_path_orders):
     delete_old_csv_files()
-    orders = session.query(Trackable).all()
+    
+    now = datetime.now()
+    start_time = datetime(now.year, now.month, now.day, 22, 0, 0) - timedelta(days=1)
+    end_time = datetime(now.year, now.month, now.day, 22, 0, 0)
+    orders = session.query(Trackable).filter(Trackable.date >= start_time, Trackable.date <= end_time)
+    
     data = []
     for order in orders:
         order_data = []
