@@ -32,6 +32,7 @@ async def start(update: Update, context: CallbackContext):
             commands=[
                 BotCommand('generate_report_subs', 'Generate subs report'),
                 BotCommand('generate_report_orders', 'Generate orders report'),
+                BotCommand('generate_report_all_orders', 'Generate all orders report'),
                 BotCommand('delete_subscriber', 'Delete subscriber')
             ],
             scope=BotCommandScopeChat(chat_id=update.effective_chat.id)
@@ -533,6 +534,21 @@ async def generate_report_ord(update: Update, context: CallbackContext):
     else:
         await update.message.reply_text("YOU ARE NOT AN ADMIN")
 
+async def generate_report_all_ord(update: Update, context: CallbackContext):
+    """Generate report"""
+    if str(update.effective_chat.id) == os.getenv('USERNAME') or str(update.effective_chat.id) == os.getenv('USERNAME_Y') or str(update.effective_chat.id) == os.getenv('USERNAME_S'):
+    # if str(update.effective_user.id) == os.getenv('USERNAME'):
+        order = session.query(Order)
+        
+        if order:
+            subprocess.run(['python3', 'reports.py', f'{update.effective_chat.id}', 'ord_all'])
+            logger.info("Report generated.")
+        else:
+            await update.message.reply_text("No subscribers to report on.")
+            logger.info("Report not generated. No subscribers to report on.")
+    else:
+        await update.message.reply_text("YOU ARE NOT AN ADMIN")
+
 async def get_chat_id(update, context):
     chat_id = update.message.chat_id
     user_id = update.message.from_user.id
@@ -718,6 +734,7 @@ def main():
     application.add_handler(CommandHandler("delete_subscriber", delete_subscriber))
     application.add_handler(CommandHandler("generate_report_subs", generate_report_sub))
     application.add_handler(CommandHandler("generate_report_orders", generate_report_ord))
+    application.add_handler(CommandHandler("generate_report_all_orders", generate_report_all_ord))
     application.add_handler(CommandHandler("change_language", change_language))
     application.add_handler(CommandHandler("contact_us", contact_us))
     application.add_handler(CommandHandler("about", about))
