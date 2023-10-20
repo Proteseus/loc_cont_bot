@@ -34,10 +34,15 @@ def iterate_orders(csv_file_path):
 
 async def send_csv_to_user(csv_file_path):
     bot = Bot(token=os.getenv('TELEGRAM_BOT_TOKEN'))
-    chat_id = os.getenv('USERNAME')
+    chat_id = os.getenv('USERNAME'), os.getenv('USERNAME_Y'), os.getenv('USERNAME_S')
     
-    with open(csv_file_path, 'rb') as file:
-        await bot.send_document(chat_id=chat_id, document=file)
+    for chat in chat_id:
+        with open(csv_file_path, 'rb') as file:
+            await bot.send_document(chat_id=chat, document=file)
+    # chat_id = os.getenv('USERNAME')
+    
+    # with open(csv_file_path, 'rb') as file:
+    #     await bot.send_document(chat_id=chat_id, document=file)
 
 if __name__ == '__main__':
     csv_file_path = f'{time.strftime("%Y-%m-%d")}.csv'
