@@ -39,7 +39,7 @@ def iterate_orders(csv_file_path_orders):
     data = []
     for order in orders:
         order_data = []
-        for column in Order.__table__.columns:
+        for column in Trackable.__table__.columns:
             order_data.append(str(getattr(order, column.name)))
         data.append(order_data)
     
@@ -58,11 +58,14 @@ async def send_csv_to_user(csv_file_path):
             await bot.send_document(chat_id=chat, document=file)
 
 if __name__ == '__main__':
+    opt = sys.argv[1]
+    
     csv_file_path_subs = f'{time.strftime("%Y-%m-%d")}_subs.csv'
     csv_file_path_orders  = f'{time.strftime("%Y-%m-%d")}_orders.csv'
     
-    iterate_subscribers(csv_file_path_subs)
-    asyncio.run(send_csv_to_user(csv_file_path_subs))
-    
-    iterate_orders(csv_file_path_orders)
-    asyncio.run(send_csv_to_user(csv_file_path_orders))
+    if opt == 'sub':
+        iterate_subscribers(csv_file_path_subs)
+        asyncio.run(send_csv_to_user(csv_file_path_subs))
+    elif opt == 'ord':
+        iterate_orders(csv_file_path_orders)
+        asyncio.run(send_csv_to_user(csv_file_path_orders))
