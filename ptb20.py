@@ -30,7 +30,8 @@ async def start(update: Update, context: CallbackContext):
     # if str(update.effective_chat.id) == os.getenv('USERNAME') or str(update.effective_chat.id) == os.getenv('USERNAME_Y'):
         await context.bot.set_my_commands(
             commands=[
-                BotCommand('generate_report', 'Generate report'),
+                BotCommand('generate_report_subs', 'Generate subs report'),
+                BotCommand('generate_report_orders', 'Generate orders report'),
                 BotCommand('delete_subscriber', 'Delete subscriber')
             ],
             scope=BotCommandScopeChat(chat_id=update.effective_chat.id)
@@ -502,14 +503,29 @@ async def delete_subscriber(update: Update, context: CallbackContext):
     else:
         await update.message.reply_text("YOU ARE NOT AN ADMIN")
 
-async def generate_report(update: Update, context: CallbackContext):
+async def generate_report_sub(update: Update, context: CallbackContext):
     """Generate report"""
     if str(update.effective_chat.id) == os.getenv('USERNAME') or str(update.effective_chat.id) == os.getenv('USERNAME_Y') or str(update.effective_chat.id) == os.getenv('USERNAME_S'):
     # if str(update.effective_user.id) == os.getenv('USERNAME'):
         order = session.query(Order)
         
         if order:
-            subprocess.run(['python3', f'reports.py {update.effective_chat.id}'])
+            subprocess.run(['python3', 'reports.py', f'{update.effective_chat.id}', 'sub'])
+            logger.info("Report generated.")
+        else:
+            await update.message.reply_text("No subscribers to report on.")
+            logger.info("Report not generated. No subscribers to report on.")
+    else:
+        await update.message.reply_text("YOU ARE NOT AN ADMIN")
+
+async def generate_report_ord(update: Update, context: CallbackContext):
+    """Generate report"""
+    if str(update.effective_chat.id) == os.getenv('USERNAME') or str(update.effective_chat.id) == os.getenv('USERNAME_Y') or str(update.effective_chat.id) == os.getenv('USERNAME_S'):
+    # if str(update.effective_user.id) == os.getenv('USERNAME'):
+        order = session.query(Order)
+        
+        if order:
+            subprocess.run(['python3', 'reports.py', f'{update.effective_chat.id}', 'ord'])
             logger.info("Report generated.")
         else:
             await update.message.reply_text("No subscribers to report on.")
@@ -700,7 +716,8 @@ def main():
     application.add_handler(conv_handler)
     application.add_handler(CommandHandler("get_chat_id", get_chat_id))
     application.add_handler(CommandHandler("delete_subscriber", delete_subscriber))
-    application.add_handler(CommandHandler("generate_report", generate_report))
+    application.add_handler(CommandHandler("generate_report_subs", generate_report_sub))
+    application.add_handler(CommandHandler("generate_report_orders", generate_report_ord))
     application.add_handler(CommandHandler("change_language", change_language))
     application.add_handler(CommandHandler("contact_us", contact_us))
     application.add_handler(CommandHandler("about", about))
