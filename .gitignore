@@ -8,3 +8,4 @@ requirements13.txt
 .vscode/
 __pycache__/
 db/
+*.csv

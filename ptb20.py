@@ -26,8 +26,8 @@ queue_ = queue.Queue()
 LOCALIZER, LOCATION, NAME, DETAILS, CONTACT, MORE_CONTACT_CONFIRM, MORE_CONTACT, SUBSCRIPTION, SUBSCRIPTION_TYPE = range(9)
 
 async def start(update: Update, context: CallbackContext):
-    # if str(update.effective_chat.id) == os.getenv('USERNAME') or str(update.effective_chat.id) == os.getenv('USERNAME_Y') or str(update.effective_chat.id) == os.getenv('USERNAME_S'):
-    if str(update.effective_chat.id) == os.getenv('USERNAME') or str(update.effective_chat.id) == os.getenv('USERNAME_Y'):
+    if str(update.effective_chat.id) == os.getenv('USERNAME') or str(update.effective_chat.id) == os.getenv('USERNAME_Y') or str(update.effective_chat.id) == os.getenv('USERNAME_S'):
+    # if str(update.effective_chat.id) == os.getenv('USERNAME') or str(update.effective_chat.id) == os.getenv('USERNAME_Y'):
         await context.bot.set_my_commands(
             commands=[
                 BotCommand('generate_report', 'Generate report'),
