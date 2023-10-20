@@ -56,7 +56,7 @@ async def start(update: Update, context: CallbackContext):
         )
 
 async def order_laundry(update: Update, context: CallbackContext) -> int:
-    order = session.query(Order).filter(Order.username == update.effective_user.id).first()
+    order = session.query(Order).filter(Order.userid == update.effective_user.id).first()
     
     if str(update.effective_user.id) == os.getenv('USERNAME'):
         await update.message.reply_text(
@@ -78,7 +78,7 @@ async def order_laundry(update: Update, context: CallbackContext) -> int:
         
         return LOCALIZER
     else:
-        key_mapping = {'username': 'user_id', 'Name': 'name', 'primary_phone': 'phone', 'secondary_phone': 's_phone', 'address_details': 'add_details', 'latitude': 'latitude','longitude': 'longitude', 'order_count': 'count', 'language': 'lang','subscription':'subscription_type'}
+        key_mapping = {'userid': 'user_id', 'username': 'user_name', 'Name': 'name', 'primary_phone': 'phone', 'secondary_phone': 's_phone', 'address_details': 'add_details', 'latitude': 'latitude','longitude': 'longitude', 'order_count': 'count', 'language': 'lang','subscription':'subscription_type'}
         
         # Populate a dictionary with values from the model instance
         order_dict = {new_key: getattr(order, old_key) for old_key, new_key in key_mapping.items()}
@@ -373,6 +373,7 @@ async def order_detail(update: Update, context: CallbackContext) -> int:
     """Store details and pass them to admins"""
     order_details = {}
     order_details['user_id'] = context.user_data['contact'].user_id
+    order_details['user_name'] = str(update.effective_chat.username)
     order_details['name'] = context.user_data['name']
     order_details['phone'] = context.user_data['contact'].phone_number
     order_details['s_phone'] = context.user_data['more_contact'] if 'more_contact' in context.user_data.keys() else None
@@ -395,7 +396,7 @@ async def order_detail(update: Update, context: CallbackContext) -> int:
 async def send_details(update: Update, context: CallbackContext, sub: False, order_details:dict) -> int:
     if sub:
         # Register user if they opt-in for a subscription
-        order = create_user_order(order_details['user_id'], order_details['name'], order_details['phone'], order_details['s_phone'], order_details['add_details'], order_details['latitude'], order_details['longitude'], order_details['lang'], order_details['subscription_type'])
+        order = create_user_order(order_details['user_id'], order_details['user_name'], order_details['name'], order_details['phone'], order_details['s_phone'], order_details['add_details'], order_details['latitude'], order_details['longitude'], order_details['lang'], order_details['subscription_type'])
         logger.info("Subscription %s registered.", order.id)
         
         await update.message.reply_text(
@@ -452,8 +453,7 @@ Call `4840` for any help
         order_details['subscription'],
         order_details['subscription_type'] if order_details['subscription_type'] is not None else 'No',
         str(order_details['latitude']),
-        str(order_details['longitude']),
-        order_details['lang'])
+        str(order_details['longitude']))
     
     await context.bot.send_message(
         chat_id=username,

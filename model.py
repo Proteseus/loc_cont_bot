@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime, timedelta, timezone
-from sqlalchemy import Column, Integer, String, DECIMAL, DATE, ForeignKey
+from sqlalchemy import Column, Integer, String, DECIMAL, DATE, DATETIME, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
@@ -10,7 +10,8 @@ class Order(Base):
     __tablename__ = 'order'
     
     id = Column(String, primary_key=True)
-    username = Column(String(10))
+    userid = Column(String(100))
+    username = Column(String(100))
     Name = Column(String, nullable=False)
     primary_phone = Column(Integer)
     secondary_phone = Column(Integer, nullable=True)
@@ -23,8 +24,9 @@ class Order(Base):
     subscription_date = Column(DATE, default=datetime.now(tz=aa).date())
 
     
-    def __init__(self, username, Name, primary_phone, secondary_phone, address_details, latitude, longitude, lang, subscription_type):
+    def __init__(self, userid, username, Name, primary_phone, secondary_phone, address_details, latitude, longitude, lang, subscription_type):
         self.id = self.generate_id()
+        self.userid = userid
         self.username = username
         self.Name = Name
         self.primary_phone = primary_phone

@@ -21,8 +21,8 @@ if not os.path.exists(db_uri):
 
 session = Session()
 
-def create_user_order(username, fName, primary_phone, secondary_phone: None, address_details, latitude, longitude, lang, subscription_type):
-    order = Order(username, fName, primary_phone, secondary_phone, address_details, latitude, longitude, lang, subscription_type)
+def create_user_order(userid, username, fName, primary_phone, secondary_phone: None, address_details, latitude, longitude, lang, subscription_type):
+    order = Order(userid, username, fName, primary_phone, secondary_phone, address_details, latitude, longitude, lang, subscription_type)
     session.add(order)
     session.commit()
     return order
