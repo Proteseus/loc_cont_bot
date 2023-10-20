@@ -509,7 +509,7 @@ async def generate_report(update: Update, context: CallbackContext):
         order = session.query(Order)
         
         if order:
-            subprocess.run(['python3', 'reports.py'])
+            subprocess.run(['python3', f'reports.py {update.effective_chat.id}'])
             logger.info("Report generated.")
         else:
             await update.message.reply_text("No subscribers to report on.")
