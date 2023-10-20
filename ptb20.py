@@ -473,7 +473,9 @@ async def delete_subscriber(update: Update, context: CallbackContext):
     """Delete subscriber"""
     user_id = update.effective_user.id
     
-    if str(user_id) == os.getenv('USERNAME'):
+    if str(update.effective_chat.id) == os.getenv('USERNAME') or str(update.effective_chat.id) == os.getenv('USERNAME_Y') or str(update.effective_chat.id) == os.getenv('USERNAME_S'):
+    
+    # if str(user_id) == os.getenv('USERNAME'):
         try:
             user = context.args[0]
         except:
@@ -502,7 +504,8 @@ async def delete_subscriber(update: Update, context: CallbackContext):
 
 async def generate_report(update: Update, context: CallbackContext):
     """Generate report"""
-    if str(update.effective_user.id) == os.getenv('USERNAME'):
+    if str(update.effective_chat.id) == os.getenv('USERNAME') or str(update.effective_chat.id) == os.getenv('USERNAME_Y') or str(update.effective_chat.id) == os.getenv('USERNAME_S'):
+    # if str(update.effective_user.id) == os.getenv('USERNAME'):
         order = session.query(Order)
         
         if order:
