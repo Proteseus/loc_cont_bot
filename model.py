@@ -51,7 +51,7 @@ class Trackable(Base):
     __tablename__ = 'trackable'    
     id = Column(Integer, primary_key=True)
     order_id = Column(String, ForeignKey('order.id'))
-    date = Column(DATE, default=datetime.now(tz=aa).date())
+    date = Column(DATETIME, default=datetime.now(tz=aa))
 
     def __init__(self, order_id):
         self.id = self.generate_id()
