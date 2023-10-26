@@ -674,7 +674,7 @@ async def contact_us(update: Update, context: CallbackContext):
     user_id = update.message.from_user.id
     await context.bot.send_message(
         chat_id=user_id,
-        text="Please contact us at [Ocean Support](https://t.me/Ocean_bot).",
+        text="Please contact us at [Ocean Support](https://t.me/OceanLaundary).",
         parse_mode="markdown"
     )
 
