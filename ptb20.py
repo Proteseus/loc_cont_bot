@@ -425,10 +425,13 @@ async def cancel_sub(update: Update, context: CallbackContext):
     
     if sub:    
         logger.info("User %s canceled their subscription.", user.first_name)
+        
+        start = KeyboardButton(text="Restart")
+        start_keyboard = [[ start ]]
         await update.message.reply_text(
             # subscription cancel message
-            "Subscription cancelled.\nThank you for using Ocean.",
-            reply_markup=ReplyKeyboardRemove()
+            "Subscription cancelled.\nThank you for using Ocean.\nTo restart use the button.",
+            reply_markup=ReplyKeyboardMarkup(start_keyboard, resize_keyboard=True)
         )
     else:
         # subscription not found
@@ -775,7 +778,7 @@ def main():
     
     # Commands
     lang_conv = ConversationHandler(
-        entry_points=[CommandHandler('start', start)],
+        entry_points=[MessageHandler(filters.Regex(r'^(Restart)$') & ~filters.COMMAND, start), CommandHandler('start', start)],
         states={
             LOCALIZER: [MessageHandler(filters.TEXT & ~filters.COMMAND, localizer)]
         },
