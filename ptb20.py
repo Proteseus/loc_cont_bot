@@ -510,8 +510,6 @@ Call `4840` for any help
         parse_mode='markdown',
         reply_markup=reorder_)
     
-    username = os.getenv('USERNAME')
-    
     message = "Order: #{}\nName: {}\nPhone: {}\nAlt: {}\nDetails: {}\nSubscription: {}\nSubscription type: {}\n[Open in Map](https://maps.google.com/?q={},{})".format(
         tracker_id,
         order_details['name'],
@@ -522,13 +520,16 @@ Call `4840` for any help
         order_details['subscription_type'] if order_details['subscription_type'] is not None else 'No',
         str(order_details['latitude']),
         str(order_details['longitude']))
+
+    chat_id = os.getenv('USERNAME'), os.getenv('USERNAME_Y'), os.getenv('USERNAME_S')
     
-    await context.bot.send_message(
-        chat_id=username,
-        text=message,
-        parse_mode='markdown'
-    )
-    logger.info("Order recieved and transmitted to %s.", username)
+    if user in chat_id:
+        await context.bot.send_message(
+            chat_id=user,
+            text=message,
+            parse_mode='markdown'
+        )
+        logger.info("Order recieved and transmitted to %s.", user)
     
     return ConversationHandler.END
 
