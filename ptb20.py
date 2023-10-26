@@ -523,7 +523,7 @@ Call `4840` for any help
 
     chat_id = os.getenv('USERNAME'), os.getenv('USERNAME_Y'), os.getenv('USERNAME_S')
     
-    if user in chat_id:
+    for user in chat_id:
         await context.bot.send_message(
             chat_id=user,
             text=message,
