@@ -66,7 +66,7 @@ Select a language to access the service.
         custom_keyboard = [[ Amharic, English ]]
         reply_markup = ReplyKeyboardMarkup(custom_keyboard, resize_keyboard=True)
         await update.message.reply_text(
-            'Pick your preffered language:',
+            text="Pick your preffered language:",
             reply_markup=reply_markup
         )
         
@@ -101,6 +101,7 @@ async def localizer(update: Update, context: CallbackContext) -> int:
 ስልክ - 09######## - 09########""",
             reply_markup=ReplyKeyboardRemove()
         )
+        text = "ይዘዙን"
     elif lang == "English":
         await update.message.reply_text(
             text="""What can this bot do?
@@ -124,13 +125,14 @@ Free Pickup and Delivery available in all areas of Addis Ababa, with a minimum o
 Contact - 09######## - 09########""",
             reply_markup=ReplyKeyboardRemove()
         )
-    
+        text = "Order us"
+        
     order_laundry = KeyboardButton(text="order_laundry")
         
     custom_keyboard = [[ order_laundry ]]
     reply_markup = ReplyKeyboardMarkup(custom_keyboard, resize_keyboard=True)
     await update.message.reply_text(
-        'Pick your preffered language:',
+        text=text,
         reply_markup=reply_markup
     )
         
