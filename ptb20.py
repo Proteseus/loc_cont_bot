@@ -141,7 +141,6 @@ Contact - 09######## - 09########""",
 
 async def order_laundry(update: Update, context: CallbackContext) -> int:
     order = session.query(Order).filter(Order.userid == update.effective_user.id).first()
-    lang = context.user_data['lang']
     
     if str(update.effective_user.id) == os.getenv('USERNAME'):
         await update.message.reply_text(
@@ -151,6 +150,7 @@ async def order_laundry(update: Update, context: CallbackContext) -> int:
         return ConversationHandler.END
     
     if order is None:
+        lang = context.user_data['lang']
         await context.bot.send_message(
         text="""
         *Pricing*
