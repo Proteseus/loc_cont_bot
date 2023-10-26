@@ -40,7 +40,6 @@ async def start(update: Update, context: CallbackContext):
     else:
         await context.bot.set_my_commands(
             commands=[
-                BotCommand("order_laundry", "order laundry" ),
                 BotCommand("cancel", "end conversation"),
                 BotCommand("change_language", "change language"),
                 BotCommand("contact_us", "contact us"),
@@ -52,21 +51,15 @@ async def start(update: Update, context: CallbackContext):
         
         await context.bot.send_message(
             chat_id=update.effective_chat.id,
-            text="Use /order_laundry to start order.\nUse /cancel to end conversation with our bot at any time.\nMake sure you are in your home before you proceed.",
-            reply_markup=ReplyKeyboardRemove()
-        )
+            text="""Welcome to Ocean Laundry service
+ወደ ኦሽን የልብስ እጥበት አገልግሎት እንኳን በደህና መጡ።
 
-async def order_laundry(update: Update, context: CallbackContext) -> int:
-    order = session.query(Order).filter(Order.userid == update.effective_user.id).first()
-    
-    if str(update.effective_user.id) == os.getenv('USERNAME'):
-        await update.message.reply_text(
-            "ADMIN\n/generate_report\n/delete_subscriber",
+👇
+Select a language to access the service.
+አገልግሎቱን ለማግኘት ቋንቋ ይምረጡ""",
             reply_markup=ReplyKeyboardRemove()
         )
-        return ConversationHandler.END
-    
-    if order is None:
+        
         Amharic = KeyboardButton(text="Amharic")
         English = KeyboardButton(text="English")
         
@@ -78,16 +71,6 @@ async def order_laundry(update: Update, context: CallbackContext) -> int:
         )
         
         return LOCALIZER
-    else:
-        key_mapping = {'userid': 'user_id', 'username': 'user_name', 'Name': 'name', 'primary_phone': 'phone', 'secondary_phone': 's_phone', 'address_details': 'add_details', 'latitude': 'latitude','longitude': 'longitude', 'order_count': 'count', 'language': 'lang','subscription':'subscription_type'}
-        
-        # Populate a dictionary with values from the model instance
-        order_dict = {new_key: getattr(order, old_key) for old_key, new_key in key_mapping.items()}
-        order_dict['subscription'] = 'Yes'
-        
-        add_order(order.username)
-        
-        return await send_details(update, context, False, order_dict)
 
 async def localizer(update: Update, context: CallbackContext) -> int:
     """Store user language preference and ask for details"""
@@ -95,7 +78,78 @@ async def localizer(update: Update, context: CallbackContext) -> int:
     context.user_data['lang'] = lang
     logger.info("Language: %s", lang)
     
-    await context.bot.send_message(
+    if lang == "Amharic":
+        await update.message.reply_text(
+            text="""ይህ ቦት ምን ማድረግ ይችላል?
+
+ኦሽን ልብስ ማጠቢያ - የንብረቶቻችሁን ንፅህናን የማረጋገጥ አገልግሎት።
+
+በሁሉም የአዲስ አበባ አከባቢዎች ነፃ መረከብ እና ማድረስ በትንሹ ትእዛዝ ከ1,200 ብር ጀምሮ ያገኛሉ።
+
+🔗 ቆሻሻ ማስወገድ እና ልብሶን በጥንቃቄ መያዝ
+
+🛠 የምንሰጣቸው አገልግሎቶች :
+
+✅ መታጠብ እና ማጠፍ
+✅ የደረቅ እጥበት
+
+📍ባዘዙ በ24 ሰአትውስጥ ልብስዎን እንሰበስባለን።
+📍በጥቂት ቀናት ውስጥ ማድረስ።
+
+              100% ጥራትና ዋስት
+
+ስልክ - 09######## - 09########""",
+            reply_markup=ReplyKeyboardRemove()
+        )
+    elif lang == "English":
+        await update.message.reply_text(
+            text="""What can this bot do?
+
+𝗢𝗰𝗲𝗮𝗻 𝗟𝗮𝘂𝗻𝗱𝗮𝗿𝘆 - a service for ensuring the cleanliness of your belongings.
+
+Free Pickup and Delivery available in all areas of Addis Ababa, with a minimum order of 1,000 ETB birr.
+
+🔗 Stains removed; Clothes handled with care.
+
+🛠 The services we provide :
+
+✅ ﻿Wash and fold*
+✅ ﻿Dry cleaning*
+
+📍We will collect your clothes within 24 hours of your order.
+📍Delivery within a few days.
+
+              100% 𝖖𝖚𝖆𝖑𝖎𝖙𝖞 𝖌𝖚𝖆𝖗𝖆𝖓𝖙𝖊𝖊
+
+Contact - 09######## - 09########""",
+            reply_markup=ReplyKeyboardRemove()
+        )
+    
+    order_laundry = KeyboardButton(text="order_laundry")
+        
+    custom_keyboard = [[ order_laundry ]]
+    reply_markup = ReplyKeyboardMarkup(custom_keyboard, resize_keyboard=True)
+    await update.message.reply_text(
+        'Pick your preffered language:',
+        reply_markup=reply_markup
+    )
+        
+    return ConversationHandler.END
+
+
+async def order_laundry(update: Update, context: CallbackContext) -> int:
+    order = session.query(Order).filter(Order.userid == update.effective_user.id).first()
+    lang = context.user_data['lang']
+    
+    if str(update.effective_user.id) == os.getenv('USERNAME'):
+        await update.message.reply_text(
+            "ADMIN\n/generate_report\n/delete_subscriber",
+            reply_markup=ReplyKeyboardRemove()
+        )
+        return ConversationHandler.END
+    
+    if order is None:
+        await context.bot.send_message(
         text="""
         *Pricing*
 
@@ -141,18 +195,29 @@ async def localizer(update: Update, context: CallbackContext) -> int:
         parse_mode="Markdown",
         reply_markup=ReplyKeyboardRemove()
     )
-    
-    if lang == "English":
-        await update.message.reply_text(
-        """✅ Please give us details below:\n\nName""",
-            reply_markup=ReplyKeyboardRemove()
-        )
+        
+        if lang == "English":
+            await update.message.reply_text(
+            """✅ Please give us details below:\n\nName""",
+                reply_markup=ReplyKeyboardRemove()
+            )
+        else:
+            await update.message.reply_text(
+            """ሙሉ ስም""",
+                reply_markup=ReplyKeyboardRemove()
+            )
+        return NAME
     else:
-        await update.message.reply_text(
-        """ሙሉ ስም""",
-            reply_markup=ReplyKeyboardRemove()
-        )
-    return NAME
+        key_mapping = {'userid': 'user_id', 'username': 'user_name', 'Name': 'name', 'primary_phone': 'phone', 'secondary_phone': 's_phone', 'address_details': 'add_details', 'latitude': 'latitude','longitude': 'longitude', 'order_count': 'count', 'language': 'lang','subscription':'subscription_type'}
+        
+        # Populate a dictionary with values from the model instance
+        order_dict = {new_key: getattr(order, old_key) for old_key, new_key in key_mapping.items()}
+        order_dict['subscription'] = 'Yes'
+        
+        add_order(order.username)
+        
+        return await send_details(update, context, False, order_dict)
+
 
 async def name(update: Update, context: CallbackContext) -> int:
     """Store user name and ask for details"""
@@ -470,7 +535,6 @@ async def reorder(update: Update, context: CallbackContext):
     if update.effective_message.text == 'Reorder':
         return await order_laundry(update, context)
 
-
 async def delete_subscriber(update: Update, context: CallbackContext):
     """Delete subscriber"""
     user_id = update.effective_user.id
@@ -646,7 +710,6 @@ async def change_language_set(update: Update, context: CallbackContext):
                 "Language changed to English."
             )
 
-
 async def cancel(update: Update, context: CallbackContext) -> int:
     """Cancels and ends the conversation."""
     
@@ -697,7 +760,6 @@ async def sub_notice_handle(update: Update, context: CallbackContext):
     if update.effective_message.text == 'Reorder':
         return await order_laundry(update, context)
 
-
 async def error_handler(update: Update, context: CallbackContext):
     """Log the error and handle it gracefully"""
     logger.error(msg="Exception occurred", exc_info=context.error)
@@ -709,10 +771,17 @@ def main():
     application = Application.builder().token(TOKEN).build()
     
     # Commands
-    conv_handler = ConversationHandler(
-        entry_points=[CommandHandler('Order_Laundry', order_laundry)],
+    lang_conv = ConversationHandler(
+        entry_points=[CommandHandler('start', start)],
         states={
-            LOCALIZER: [MessageHandler(filters.TEXT & ~filters.COMMAND, localizer)],
+            LOCALIZER: [MessageHandler(filters.TEXT & ~filters.COMMAND, localizer)]
+        },
+        fallbacks=[CommandHandler("cancel", cancel)]
+    )
+    
+    conv_handler = ConversationHandler(
+        entry_points=[MessageHandler(filters.Regex(r'^(order_laundry)$') & ~filters.COMMAND, order_laundry)],
+        states={
             NAME: [MessageHandler(filters.TEXT & ~filters.COMMAND, name)],
             DETAILS: [MessageHandler(filters.TEXT & ~filters.COMMAND, details)],
             LOCATION: [MessageHandler(filters.LOCATION, location)],
@@ -725,11 +794,11 @@ def main():
         fallbacks=[CommandHandler("cancel", cancel)],
     )
     
-    application.add_handler(CommandHandler('start', start))
+    application.add_handler(lang_conv)
+    application.add_handler(conv_handler)
     application.add_handler(MessageHandler(filters.Regex(r'^(Reorder)$'), reorder))
     application.add_handler(MessageHandler(filters.Regex(r'^(Accept|Cancel|Skip)$'), sub_notice_handle))
     application.add_handler(CommandHandler('cancel_subscription', cancel_sub))
-    application.add_handler(conv_handler)
     application.add_handler(CommandHandler("get_chat_id", get_chat_id))
     application.add_handler(CommandHandler("delete_subscriber", delete_subscriber))
     application.add_handler(CommandHandler("generate_report_subs", generate_report_sub))

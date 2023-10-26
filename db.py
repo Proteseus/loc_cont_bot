@@ -34,7 +34,7 @@ def add_order(username):
     return {"user": order.username, "order_count": order.order_count}
 
 def delete_order(username):
-    order = session.query(Order).filter(Order.username == username).first()
+    order = session.query(Order).filter(Order.userid == username).first()
     if order:
         session.delete(order)
         session.commit()
