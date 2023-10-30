@@ -262,10 +262,16 @@ async def details(update: Update, context: CallbackContext) -> int:
     custom_keyboard = [[ location_keyboard ]]
     reply_markup = ReplyKeyboardMarkup(custom_keyboard, resize_keyboard=True)
     
-    await update.message.reply_text(
-        'Hi! Please share your location by pressing the button below.',
-        reply_markup=reply_markup
-    )
+    if context.user_data['lang'] == "English":
+        await update.message.reply_text(
+            'Hi! Please share your location by pressing the button below.',
+            reply_markup=reply_markup
+        )
+    elif context.user_data['lang'] == "Amharic":
+        await update.message.reply_text(
+            ' እባኮትን ከታች ያለውን ቁልፍ በመጫን አካባቢዎን ያካፍሉ።',
+            reply_markup=reply_markup
+        )
     
     return LOCATION
 
@@ -274,7 +280,10 @@ async def location(update: Update, context: CallbackContext) -> int:
     user_location = update.message.location
     # Handle the case when location is not provided
     if user_location is None:
-        await update.message.reply_text('No location provided. Please share your location.')
+        if context.user_data['lang'] == "English":
+            await update.message.reply_text('No location provided. Please share your location.')
+        elif context.user_data['lang'] == "Amharic":
+            await update.message.reply_text('ምንም ቦታ አልተሰጠም። እባክዎ አካባቢዎን ያጋሩ።')
         return LOCATION
     
     context.user_data['location'] = user_location
@@ -283,10 +292,17 @@ async def location(update: Update, context: CallbackContext) -> int:
     contact_keyboard = KeyboardButton(text="Share Contact", request_contact=True)
     custom_keyboard = [[ contact_keyboard ]]
     reply_markup = ReplyKeyboardMarkup(custom_keyboard, resize_keyboard=True)
-    await update.message.reply_text(
-        'Hi! Please share your contact by pressing the button below.',
-        reply_markup=reply_markup
-    )
+    
+    if context.user_data['lang'] == "English":
+        await update.message.reply_text(
+            'Hi! Please share your contact by pressing the button below.',
+            reply_markup=reply_markup
+        )
+    elif context.user_data['lang'] == "Amharic":
+        await update.message.reply_text(
+            'እባኮትን ከታች ያለውን ቁልፍ በመጫን አድራሻዎን ያካፍሉ።',
+            reply_markup=reply_markup
+        )
 
     return CONTACT
 
@@ -295,33 +311,53 @@ async def contact(update: Update, context: CallbackContext) -> int:
     user_contact = update.message.contact
     # Handle the case when contact is not provided
     if user_contact is None:
-        await update.message.reply_text('No contact provided. Please share your contact.')
+        if context.user_data['lang'] == "English":
+            await update.message.reply_text('No contact provided. Please share your contact.')
+        elif context.user_data['lang'] == "Amharic":
+            await update.message.reply_text('ምንም ዕውቂያ አልተሰጠም። እባክዎ እውቂያዎን ያጋሩ።')
         return CONTACT
 
     context.user_data['contact'] = user_contact
     logger.info("Contact %s: %s", user_contact.first_name, user_contact.phone_number)    
     
-    yes_button = KeyboardButton(text="Yes")
-    no_button = KeyboardButton(text="No")
-    custom_keyboard = [[yes_button, no_button]]
-    reply_markup = ReplyKeyboardMarkup(custom_keyboard, resize_keyboard=True)
-    
-    await update.message.reply_text(
-        'Would you like to add an alternative number?',
-        reply_markup=reply_markup
-    )
+    if context.user_data['lang'] == "English":
+        yes_button = KeyboardButton(text="Yes")
+        no_button = KeyboardButton(text="No")
+        custom_keyboard = [[yes_button, no_button]]
+        reply_markup = ReplyKeyboardMarkup(custom_keyboard, resize_keyboard=True)
+        
+        await update.message.reply_text(
+            'Would you like to add an alternative number?',
+            reply_markup=reply_markup
+        )
+    elif context.user_data['lang'] == "Amharic":
+        yes_button = KeyboardButton(text="አዎ")
+        no_button = KeyboardButton(text="አይ")
+        custom_keyboard = [[yes_button, no_button]]
+        reply_markup = ReplyKeyboardMarkup(custom_keyboard, resize_keyboard=True)
+        
+        await update.message.reply_text(
+            'አማራጭ ቁጥር ማከል ይፈልጋሉ?',
+            reply_markup=reply_markup
+        )
     
     return MORE_CONTACT_CONFIRM
 
 async def more_contact_confirm(update: Update, context: CallbackContext) -> int:
-    if update.effective_message.text == 'Yes':
+    if update.effective_message.text == 'Yes' or update.effective_message.text == 'አዎ':
         context.user_data['more_contact'] = 'Yes'
-        
-        await update.message.reply_text(
-            """Add another number for pickup by a different person or if we can't reach you on the first number. 
-            Just the number in 09xxxxxxxx format.""",
-            reply_markup=ReplyKeyboardRemove()
-        )
+        if context.user_data['lang'] == "English":
+            await update.message.reply_text(
+                """Add another number for pickup by a different person or if we can't reach you on the first number. 
+                Just the number in 09xxxxxxxx format.""",
+                reply_markup=ReplyKeyboardRemove()
+            )
+        elif context.user_data['lang'] == "Amharic":
+            await update.message.reply_text(
+                """በሌላ ሰው ለመውሰድ ሌላ ቁጥር ይጨምሩ ወይም በመጀመሪያው ቁጥር እርስዎን ማግኘት ካልቻልን ።
+                በ09xxxxxxxx ቅርጸት ያለው ቁጥር ብቻ።""",
+                reply_markup=ReplyKeyboardRemove()
+                )
         logger.info("Additional contact required")
         return MORE_CONTACT
     
@@ -334,14 +370,18 @@ async def more_contact_confirm(update: Update, context: CallbackContext) -> int:
 async def more_contact(update: Update, context: CallbackContext) -> int:
     """Store additional contact and end conversation"""
     print(context.user_data['more_contact'])
-    if context.user_data['more_contact'] == 'Yes':
+    if context.user_data['more_contact'] == 'Yes' or context.user_data['more_contact'] == 'አዎ':
         user_additional_contact = update.message.text
-        
         # regex to accept only numbers
         if not user_additional_contact.isnumeric() or len(user_additional_contact) != 10:
-            await update.message.reply_text(
-                "Invalid input. Please enter a 10-digit number."
-            )
+            if context.user_data['lang'] == "English":
+                await update.message.reply_text(
+                    "Invalid input. Please enter a 10-digit number."
+                )
+            elif context.user_data['lang'] == "Amharic":
+                await update.message.reply_text(
+                    "ልክ ያልሆነ ግቤት እባክዎ ባለ 10-አሃዝ ቁጥር ያስገቡ።።"
+                )
             logger.info("Invalid input: %s", user_additional_contact)
             
             return MORE_CONTACT
@@ -388,16 +428,30 @@ async def subscription_optin(update: Update, context: CallbackContext) -> int:
     if sub == 'Subscribe':
         context.user_data['subscription'] = 'Yes'
         
-        weekly = KeyboardButton(text="Weekly")
-        bi_weekly = KeyboardButton(text="Bi-Weekly")
-        monthly = KeyboardButton(text="Monthly")
+        if context.user_data['lang'] == "English":
+            weekly = KeyboardButton(text="Weekly")
+            bi_weekly = KeyboardButton(text="Bi-Weekly")
+            monthly = KeyboardButton(text="Monthly")
         
-        custom_keyboard = [[ weekly, bi_weekly, monthly  ]]
-        reply_markup = ReplyKeyboardMarkup(custom_keyboard, resize_keyboard=True)
-        await update.message.reply_text(
-            'Pick your preffered subscription type:',
-            reply_markup=reply_markup
-        )
+            custom_keyboard = [[ weekly, bi_weekly, monthly  ]]
+            reply_markup = ReplyKeyboardMarkup(custom_keyboard, resize_keyboard=True)
+            
+            await update.message.reply_text(
+                'Pick your preffered subscription type:',
+                reply_markup=reply_markup
+            )
+        elif context.user_data['lang'] == "Amharic":
+            weekly = KeyboardButton(text="በየሳምንቱ")
+            bi_weekly = KeyboardButton(text="በየሁለት ሳምንቱ")
+            monthly = KeyboardButton(text="ወርሃዊ")
+        
+            custom_keyboard = [[ weekly, bi_weekly, monthly  ]]
+            reply_markup = ReplyKeyboardMarkup(custom_keyboard, resize_keyboard=True)
+
+            await update.message.reply_text(
+                'የተመረጠውን የደንበኝነት ምዝገባ አይነት ይምረጡ፡-',
+                reply_markup=reply_markup
+            )
         
         return SUBSCRIPTION_TYPE
     elif sub == 'No':
@@ -410,10 +464,16 @@ async def subscription_type(update: Update, context: CallbackContext) -> int:
     context.user_data['subscription_type'] = sub_type
     logger.info("Subscription type: %s", sub_type)
 
-    await update.message.reply_text(
-        'Thank you for subscribing to Ocean. We will call you back to confirm your subscription.',
-        reply_markup=ReplyKeyboardRemove()
-    )
+    if context.user_data['lang'] == "English":
+        await update.message.reply_text(
+            'Thank you for subscribing to Ocean. We will call you back to confirm your subscription.',
+            reply_markup=ReplyKeyboardRemove()
+        )
+    elif context.user_data['lang'] == "Amharic":
+        await update.message.reply_text(
+            'ለውቅያኖስ ስለተመዘገቡ እናመሰግናለን። የደንበኝነት ምዝገባዎን ለማረጋገጥ መልሰን እንደውልዎታለን።',
+            reply_markup=ReplyKeyboardRemove()
+        )
     
     return await order_detail(update, context)
 
@@ -484,9 +544,14 @@ async def send_details(update: Update, context: CallbackContext, sub: False, ord
 
     tracker_id = track(order_details['user_id'])
     
+    if context.user_data['lang'] == "English":
+        reOrd = "Reorder"
+    elif context.user_data['lang'] == "Amharic":
+        reOrd = "እንደገና ይዘዙ"
+    
     reorder_ = ReplyKeyboardMarkup(
         keyboard=[
-            [KeyboardButton(text="Reorder")]
+            [KeyboardButton(text=reOrd)]
         ],
         resize_keyboard=True,
         one_time_keyboard=True
@@ -546,7 +611,7 @@ Call `4840` for any help
 
 async def reorder(update: Update, context: CallbackContext):
     """Reorder"""
-    if update.effective_message.text == 'Reorder':
+    if update.effective_message.text == 'Reorder' or update.effective_message.text == "እንደገና ይዘዙ":
         return await order_laundry(update, context)
 
 async def delete_subscriber(update: Update, context: CallbackContext):
@@ -830,10 +895,10 @@ def main():
             DETAILS: [MessageHandler(filters.TEXT & ~filters.COMMAND, details)],
             LOCATION: [MessageHandler(filters.LOCATION, location)],
             CONTACT: [MessageHandler(filters.CONTACT, contact)],
-            MORE_CONTACT_CONFIRM: [MessageHandler(filters.Regex(r'^(Yes|No)$') & ~filters.COMMAND, more_contact_confirm)],
+            MORE_CONTACT_CONFIRM: [MessageHandler(filters.Regex(r'^(Yes|No|አዎ|አይ)$') & ~filters.COMMAND, more_contact_confirm)],
             MORE_CONTACT: [MessageHandler(filters.TEXT & ~filters.COMMAND, more_contact)],
             SUBSCRIPTION: [MessageHandler(filters.TEXT & ~filters.COMMAND, subscription_optin)],
-            SUBSCRIPTION_TYPE: [MessageHandler(filters.Regex(r'^(Weekly|Bi-Weekly|Monthly)$')  & ~filters.COMMAND, subscription_type)]
+            SUBSCRIPTION_TYPE: [MessageHandler(filters.Regex(r'^(Weekly|Bi-Weekly|Monthly|በየሳምንቱ|በየሁለት ሳምንቱ|ወርሃዊ)$')  & ~filters.COMMAND, subscription_type)]
         },
         fallbacks=[CommandHandler("cancel", cancel)],
     )
@@ -842,7 +907,7 @@ def main():
     # application.add_handler(lang_conv)
     # application.add_handler(change_lang_conv)
     # application.add_handler(conv_handler)
-    application.add_handler(MessageHandler(filters.Regex(r'^(Reorder)$'), reorder))
+    application.add_handler(MessageHandler(filters.Regex(r'^(Reorder|እንደገና ይዘዙ)$'), reorder))
     application.add_handler(MessageHandler(filters.Regex(r'^(Accept|Cancel|Skip)$'), sub_notice_handle))
     application.add_handler(CommandHandler('cancel_subscription', cancel_sub))
     application.add_handler(CommandHandler("get_chat_id", get_chat_id))
