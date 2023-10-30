@@ -28,26 +28,26 @@ def create_user_order(userid, username, fName, primary_phone, secondary_phone: N
     return order
 
 def add_order(username):
-    order = session.query(Order).filter(Order.username == username).first()
+    order = session.query(Order).filter(Order.userid == username).first()
     order.add_order()
     session.commit()
-    return {"user": order.username, "order_count": order.order_count}
+    return {"user": order.userid, "order_count": order.order_count}
 
 def delete_order(username):
     order = session.query(Order).filter(Order.userid == username).first()
     if order:
         session.delete(order)
         session.commit()
-        return {"user": order.username, "order_count": order.order_count}
+        return {"user": order.userid, "order_count": order.order_count}
     else:
         return False
 
 def change_lang(username, lang):
-    order = session.query(Order).filter(Order.username == username).first()
+    order = session.query(Order).filter(Order.userid == username).first()
     if order:
-        order.lang = lang
+        order.language = lang
         session.commit()
-        return {"user": order.username, "lang": order.lang}
+        return {"user": order.userid, "lang": order.language}
     else:
         return False
 

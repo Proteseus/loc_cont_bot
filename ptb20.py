@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 queue_ = queue.Queue()
 
-LOCALIZER, LOCATION, NAME, DETAILS, CONTACT, MORE_CONTACT_CONFIRM, MORE_CONTACT, SUBSCRIPTION, SUBSCRIPTION_TYPE = range(9)
+LOCALIZER, CHANGE_LANG_SET, LOCATION, NAME, DETAILS, CONTACT, MORE_CONTACT_CONFIRM, MORE_CONTACT, SUBSCRIPTION, SUBSCRIPTION_TYPE = range(10)
 
 async def start(update: Update, context: CallbackContext):
     if str(update.effective_chat.id) == os.getenv('USERNAME') or str(update.effective_chat.id) == os.getenv('USERNAME_Y') or str(update.effective_chat.id) == os.getenv('USERNAME_S'):
@@ -82,52 +82,60 @@ async def localizer(update: Update, context: CallbackContext) -> int:
         await update.message.reply_text(
             text="""ይህ ቦት ምን ማድረግ ይችላል?
 
-ኦሽን ልብስ ማጠቢያ - የንብረቶቻችሁን ንፅህናን የማረጋገጥ አገልግሎት።
+<b>ኦሽን ልብስ ማጠቢያ</b> - የንብረቶቻችሁን ንፅህናን የማረጋገጥ አገልግሎት።
 
-በሁሉም የአዲስ አበባ አከባቢዎች ነፃ መረከብ እና ማድረስ በትንሹ ትእዛዝ ከ1,200 ብር ጀምሮ ያገኛሉ።
+በሁሉም የአዲስ አበባ አከባቢዎች ነፃ መረከብ እና ማድረስ በትንሹ ትእዛዝ ከ 1,000 ብር ጀምሮ ያገኛሉ።
 
 🔗 ቆሻሻ ማስወገድ እና ልብሶን በጥንቃቄ መያዝ
 
-🛠 የምንሰጣቸው አገልግሎቶች :
+🛠 <u>የምንሰጣቸው አገልግሎቶች</u> :
 
 ✅ መታጠብ እና ማጠፍ
 ✅ የደረቅ እጥበት
+✅ የቆሸሸ ልብስ ካሉበት ቦታ ወስደን አጥበን ያሉበት ቦታ እናደርሳለን።
+
+<u>የድርጅቱ አሰራር</u> 
 
 📍ባዘዙ በ24 ሰአትውስጥ ልብስዎን እንሰበስባለን።
 📍በጥቂት ቀናት ውስጥ ማድረስ።
 
-              100% ጥራትና ዋስት
+              100% ጥራትና ዋስት
 
 ስልክ - 09######## - 09########""",
-            reply_markup=ReplyKeyboardRemove()
+            reply_markup=ReplyKeyboardRemove(),
+            parse_mode="html"
         )
         text = "ይዘዙን"
+        order_laundry = KeyboardButton(text="ይዘዙን")
     elif lang == "English":
         await update.message.reply_text(
             text="""What can this bot do?
 
-𝗢𝗰𝗲𝗮𝗻 𝗟𝗮𝘂𝗻𝗱𝗮𝗿𝘆 - a service for ensuring the cleanliness of your belongings.
+<b>𝗢𝗰𝗲𝗮𝗻 𝗟𝗮𝘂𝗻𝗱𝗮𝗿𝘆</b> - a service for ensuring the cleanliness of your belongings.
 
 Free Pickup and Delivery available in all areas of Addis Ababa, with a minimum order of 1,000 ETB birr.
 
 🔗 Stains removed; Clothes handled with care.
 
-🛠 The services we provide :
+🛠 <u>The services we provide</u> :
 
 ✅ ﻿Wash and fold*
 ✅ ﻿Dry cleaning*
+✅ We pick up the dirty clothes and deliver them clean.
+
+<u>The procedure of the organization</u>;
 
 📍We will collect your clothes within 24 hours of your order.
 📍Delivery within a few days.
 
-              100% 𝖖𝖚𝖆𝖑𝖎𝖙𝖞 𝖌𝖚𝖆𝖗𝖆𝖓𝖙𝖊𝖊
+              100% 𝖖𝖚𝖆𝖑𝖎𝖙𝖞 𝖌𝖚𝖆𝖗𝖆𝖓𝖙𝖊𝖊
 
 Contact - 09######## - 09########""",
-            reply_markup=ReplyKeyboardRemove()
+            reply_markup=ReplyKeyboardRemove(),
+            parse_mode="html"
         )
         text = "Order us"
-        
-    order_laundry = KeyboardButton(text="order_laundry")
+        order_laundry = KeyboardButton(text="order_laundry")
         
     custom_keyboard = [[ order_laundry ]]
     reply_markup = ReplyKeyboardMarkup(custom_keyboard, resize_keyboard=True)
@@ -205,18 +213,18 @@ async def order_laundry(update: Update, context: CallbackContext) -> int:
             )
         else:
             await update.message.reply_text(
-            """ሙሉ ስም""",
+            """✅ እባክዎን ከዚህ በታች ዝርዝር መረጃ ይስጡን።\nስም""",
                 reply_markup=ReplyKeyboardRemove()
             )
         return NAME
-    else:
+    elif order:
         key_mapping = {'userid': 'user_id', 'username': 'user_name', 'Name': 'name', 'primary_phone': 'phone', 'secondary_phone': 's_phone', 'address_details': 'add_details', 'latitude': 'latitude','longitude': 'longitude', 'order_count': 'count', 'language': 'lang','subscription':'subscription_type'}
         
         # Populate a dictionary with values from the model instance
         order_dict = {new_key: getattr(order, old_key) for old_key, new_key in key_mapping.items()}
         order_dict['subscription'] = 'Yes'
         
-        add_order(order.username)
+        add_order(order.userid)
         
         return await send_details(update, context, False, order_dict)
 
@@ -678,21 +686,28 @@ async def contact_us(update: Update, context: CallbackContext):
         parse_mode="markdown"
     )
 
-async def change_language(update: Update, context: CallbackContext):
+async def change_language(update: Update, context: CallbackContext) -> int:
     """Change Language"""
-    order = session.query(Order).filter(Order.username == update.message.from_user.id).first()
+    order = session.query(Order).filter(Order.userid == update.effective_user.id).first()
+    logger.info("Language change requested for user %s.", update.effective_user.id)
+    
     if order:
+        if order.language == 'Amharic':
+            text = "የመረጡትን ቋንቋ ይምረጡ፡-"
+        elif order.language == 'English':
+            text = "Pick your preffered language:"
+        
         Amharic = KeyboardButton(text="Amharic")
         English = KeyboardButton(text="English")
         
         custom_keyboard = [[ Amharic, English ]]
         reply_markup = ReplyKeyboardMarkup(custom_keyboard, resize_keyboard=True)
         await update.message.reply_text(
-            'Pick your preffered language:',
+            text=text,
             reply_markup=reply_markup
         )
         
-        return await change_language_set(update, context)
+        return CHANGE_LANG_SET
     else:
         await update.message.reply_text(
             "You need to make an order first."
@@ -701,7 +716,16 @@ async def change_language(update: Update, context: CallbackContext):
 
 async def change_language_set(update: Update, context: CallbackContext):
     lang = update.message.text
+    print(lang)
     user_id = update.message.from_user.id
+    
+    reorder_ = ReplyKeyboardMarkup(
+        keyboard=[
+            [KeyboardButton(text="Reorder")]
+        ],
+        resize_keyboard=True,
+        one_time_keyboard=True
+    )
     
     lang_change = change_lang(user_id, lang)
     
@@ -709,12 +733,17 @@ async def change_language_set(update: Update, context: CallbackContext):
         logger.info("Language changed to %s for user %s.", lang, user_id)
         if lang == 'Amharic':
             await update.message.reply_text(
-                "ቋንቋ በአማርኛ ተቀይሯል።"                
-            )
-        else:
+                "ቋንቋ በአማርኛ ተቀይሯል።",
+                reply_markup=reorder_
+                )
+            logger.info("Language changed to Amharic for user %s.", user_id)
+        elif lang == "English":
             await update.message.reply_text(
-                "Language changed to English."
+                "Language changed to English.",
+                reply_markup=reorder_
             )
+            logger.info("Language changed to English for user %s.", user_id)
+    return ConversationHandler.END
 
 async def cancel(update: Update, context: CallbackContext) -> int:
     """Cancels and ends the conversation."""
@@ -785,8 +814,17 @@ def main():
         fallbacks=[CommandHandler("cancel", cancel)]
     )
     
+    change_lang_conv = ConversationHandler(
+        entry_points=[CommandHandler("change_language", change_language)],
+        states={
+            CHANGE_LANG_SET: [MessageHandler(filters.Regex(r'^(Amharic|English)$') & ~filters.COMMAND, change_language_set)]
+        },
+        fallbacks=[CommandHandler("cancel", cancel)],
+    )
+    
+    
     conv_handler = ConversationHandler(
-        entry_points=[MessageHandler(filters.Regex(r'^(order_laundry)$') & ~filters.COMMAND, order_laundry)],
+        entry_points=[MessageHandler(filters.Regex(r'^(order_laundry|ይዘዙን)$') & ~filters.COMMAND, order_laundry)],
         states={
             NAME: [MessageHandler(filters.TEXT & ~filters.COMMAND, name)],
             DETAILS: [MessageHandler(filters.TEXT & ~filters.COMMAND, details)],
@@ -795,13 +833,15 @@ def main():
             MORE_CONTACT_CONFIRM: [MessageHandler(filters.Regex(r'^(Yes|No)$') & ~filters.COMMAND, more_contact_confirm)],
             MORE_CONTACT: [MessageHandler(filters.TEXT & ~filters.COMMAND, more_contact)],
             SUBSCRIPTION: [MessageHandler(filters.TEXT & ~filters.COMMAND, subscription_optin)],
-            SUBSCRIPTION_TYPE: [MessageHandler(filters.TEXT & ~filters.COMMAND, subscription_type)]
+            SUBSCRIPTION_TYPE: [MessageHandler(filters.Regex(r'^(Weekly|Bi-Weekly|Monthly)$')  & ~filters.COMMAND, subscription_type)]
         },
         fallbacks=[CommandHandler("cancel", cancel)],
     )
     
-    application.add_handler(lang_conv)
-    application.add_handler(conv_handler)
+    application.add_handlers([lang_conv, conv_handler, change_lang_conv])
+    # application.add_handler(lang_conv)
+    # application.add_handler(change_lang_conv)
+    # application.add_handler(conv_handler)
     application.add_handler(MessageHandler(filters.Regex(r'^(Reorder)$'), reorder))
     application.add_handler(MessageHandler(filters.Regex(r'^(Accept|Cancel|Skip)$'), sub_notice_handle))
     application.add_handler(CommandHandler('cancel_subscription', cancel_sub))
@@ -810,7 +850,6 @@ def main():
     application.add_handler(CommandHandler("generate_report_subs", generate_report_sub))
     application.add_handler(CommandHandler("generate_report_orders", generate_report_ord))
     application.add_handler(CommandHandler("generate_report_all_orders", generate_report_all_ord))
-    application.add_handler(CommandHandler("change_language", change_language))
     application.add_handler(CommandHandler("contact_us", contact_us))
     application.add_handler(CommandHandler("about", about))
 
