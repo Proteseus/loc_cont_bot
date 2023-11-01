@@ -461,7 +461,12 @@ async def subscription_optin(update: Update, context: CallbackContext) -> int:
 async def subscription_type(update: Update, context: CallbackContext) -> int:
     """Store subscription type"""
     sub_type = update.effective_message.text
-    context.user_data['subscription_type'] = sub_type
+    sub_dict = {'በየሳምንቱ': 'Weekly', 'በየሁለት ሳምንቱ': 'Bi-Weekly', 'ወርሃዊ': 'Monthly'}
+    if context.user_data['lang'] == "Amharic":
+        context.user_data['subscription_type'] = sub_dict[sub_type]
+    elif context.user_data['lang'] == "English":
+        context.user_data['subscription_type'] = sub_type
+    
     logger.info("Subscription type: %s", sub_type)
 
     if context.user_data['lang'] == "English":
