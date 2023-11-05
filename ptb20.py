@@ -269,7 +269,7 @@ async def details(update: Update, context: CallbackContext) -> int:
         )
     elif context.user_data['lang'] == "Amharic":
         await update.message.reply_text(
-            ' እባኮትን ከታች ያለውን ቁልፍ በመጫን አካባቢዎን ያካፍሉ።',
+            ' እባኮትን ከታች ያለውን ቁልፍ በመጫን አድራሻዎን ያጋሩን።',
             reply_markup=reply_markup
         )
     
@@ -300,7 +300,7 @@ async def location(update: Update, context: CallbackContext) -> int:
         )
     elif context.user_data['lang'] == "Amharic":
         await update.message.reply_text(
-            'እባኮትን ከታች ያለውን ቁልፍ በመጫን አድራሻዎን ያካፍሉ።',
+            'እባኮትን ከታች ያለውን ቁልፍ በመጫን ስልክ ቁጥርዎን ያጋሩን።',
             reply_markup=reply_markup
         )
 
@@ -337,7 +337,7 @@ async def contact(update: Update, context: CallbackContext) -> int:
         reply_markup = ReplyKeyboardMarkup(custom_keyboard, resize_keyboard=True)
         
         await update.message.reply_text(
-            'አማራጭ ቁጥር ማከል ይፈልጋሉ?',
+            'አማራጭ ቁጥር ማጋራት ይፈልጋሉ?',
             reply_markup=reply_markup
         )
     
