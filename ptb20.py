@@ -163,42 +163,42 @@ async def order_laundry(update: Update, context: CallbackContext) -> int:
         text="""
         *Pricing*
 
-*Item*                              *Price*
+*Item*                                                      *Price*
 
-*Tops*
-- All shirts.....................50
-- Polo.............................60
-- Blouse
-- Sweater......................100
-- Jacket/filled hight...250/350
-- Vest.............................50
+                                 *Tops*
+All shirts                                                50
+Polo                                                        60
+Blouse
+Sweater                                                 100
+Jacket/filled hight                               250/350
+Vest                                                        50
 
-*Bottoms*
-- Trouser.........................80
-- Skirt L/s.....................250/200
-- Shorts..........................50
-- Underwear..................60
+                                *Bottoms*
+Trouser                                                   80
+Skirt L/s                                                 250/200
+Shorts                                                    50
+Underwear                                            60
 
-*Full body*
-- National dress................350
-- Wedding dress L/S........2500/1800
-- Coat/jeans coat............300/200
-- Suit (jacket trouser).....400
+                                *Full body*
+National dress                                       350
+Wedding dress L/S                               2500/1800
+Coat/jeans coat                                    300/200
+Suit (jacket trouser                              400
 
-*Household*
-- Blanket Ex/L/m/s.........550/500/450/400
-- Duvet cover...................190
-- Comforter/duvet
-- Table cloth s/m/l..........75/100/125
-- Towel s/m/l....................30/40/60
+                                *Household*
+Blanket Ex/L/m/s                                  550/500/450/400
+Duvet cover                                           190
+Comforter/duvet
+Table cloth s/m/l                                   75/100/125
+Towel s/m/l                                            30/40/60
 
-*Accessories*
-- Napkin............................30
-- Pillow case.....................30
-- Tie/scarf.........................30
+                                *Accessories*
+Napkin                                                     30
+Pillow case                                              30
+Tie/scarf                                                  30
 
-*Button repair*
-- Free
+                                *Button repair*
+Free
 
         """,
         chat_id=update.effective_chat.id,
