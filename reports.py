@@ -39,8 +39,8 @@ def iterate_orders(csv_file_path_orders):
     delete_old_csv_files()
     
     now = datetime.now()
-    start_time = datetime(now.year, now.month, now.day, 12, 0, 0) - timedelta(days=1)
-    end_time = datetime(now.year, now.month, now.day, 12, 0, 0)
+    start_time = datetime(now.year, now.month, now.day, 9, 0, 0) - timedelta(days=1)
+    end_time = datetime(now.year, now.month, now.day, 9, 0, 0)
     orders = session.query(Trackable).filter(Trackable.date >= start_time, Trackable.date <= end_time)
     
     data = []
