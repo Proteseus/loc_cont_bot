@@ -5,6 +5,7 @@ import sys
 import glob
 import time
 import asyncio
+import logging
 from datetime import datetime, timedelta
 
 from db import create_user_order, add_order, session
@@ -12,6 +13,10 @@ from model import Order, Trackable
 
 from telegram import Bot
 from telegram.ext import Updater
+
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
+logging.getLogger("httpx").setLevel(logging.WARNING)
+logger = logging.getLogger(__name__)
 
 def delete_old_csv_files():
     files = glob.glob('*.csv')
@@ -58,11 +63,14 @@ def iterate_orders(csv_file_path_orders):
 
 async def send_csv_to_user(csv_file_path):
     bot = Bot(token=os.getenv('TELEGRAM_BOT_TOKEN'))
-    chat_id = os.getenv('USERNAME'), os.getenv('USERNAME_Y'), os.getenv('USERNAME_S')
+    chat_id = os.getenv('USERNAME_Y'), os.getenv('USERNAME_S')
     
-    for chat in chat_id:
-        with open(csv_file_path, 'rb') as file:
-            await bot.send_document(chat_id=chat, document=file)
+    if user in chat_id:
+        try:
+            with open(csv_file_path, 'rb') as file:
+                await bot.send_document(chat_id=user, document=file)
+        except telegram.error.BadRequest:
+            logger.info('Error sending CSV to %f', user)
 
 if __name__ == '__main__':
     opt = sys.argv[1]
