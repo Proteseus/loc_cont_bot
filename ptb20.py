@@ -602,7 +602,7 @@ Call `4840` for any help
         str(order_details['latitude']),
         str(order_details['longitude']))
 
-    chat_id = os.getenv('USERNAME'), os.getenv('USERNAME_Y'), os.getenv('USERNAME_S')
+    chat_id = os.getenv('USERNAME_Y'), os.getenv('USERNAME_S')
     
     for user in chat_id:
         await context.bot.send_message(
