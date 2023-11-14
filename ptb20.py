@@ -267,6 +267,9 @@ Free
             )
         return NAME
     elif order:
+        context.user_data['lang'] = order.language
+        logger.info("User: %s, Language: %s", update.effective_chat.id, order.language)
+        
         key_mapping = {'userid': 'user_id', 'username': 'user_name', 'Name': 'name', 'primary_phone': 'phone', 'secondary_phone': 's_phone', 'address_details': 'add_details', 'latitude': 'latitude','longitude': 'longitude', 'order_count': 'count', 'language': 'lang','subscription':'subscription_type'}
         
         # Populate a dictionary with values from the model instance
@@ -519,7 +522,7 @@ minimum of 1000 birr.
 
 async def subscription_optin(update: Update, context: CallbackContext) -> int:
     sub = update.effective_message.text
-    if sub == 'Subscribe':
+    if sub == 'Subscribe' or sub == 'የጥቅል አባል ይሁኑ':
         context.user_data['subscription'] = 'Yes'
         
         if context.user_data['lang'] == "English":
@@ -697,6 +700,7 @@ Call `4840` for any help
         str(order_details['longitude']))
 
     chat_id = os.getenv('USERNAME_Y'), os.getenv('USERNAME_S')
+    # chat_id = [os.getenv('USERNAME')]
     
     for user in chat_id:
         await context.bot.send_message(
