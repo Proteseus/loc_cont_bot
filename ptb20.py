@@ -159,9 +159,10 @@ async def order_laundry(update: Update, context: CallbackContext) -> int:
     
     if order is None:
         lang = context.user_data['lang']
-        await context.bot.send_message(
-        text="""
-        *Pricing*
+        if lang == "English":
+            await context.bot.send_message(
+            text="""
+            *Pricing*
 
 *Item*                                                      *Price*
 
@@ -177,13 +178,12 @@ Vest                                                        50
 Trouser                                                   80
 Skirt L/s                                                 250/200
 Shorts                                                    50
-Underwear                                            60
 
                                 *Full body*
 National dress                                       350
 Wedding dress L/S                               2500/1800
 Coat/jeans coat                                    300/200
-Suit (jacket trouser                              400
+Suit jacket trouser                               400
 
                                 *Household*
 Blanket Ex/L/m/s                                  550/500/450/400
@@ -196,15 +196,64 @@ Towel s/m/l                                            30/40/60
 Napkin                                                     30
 Pillow case                                              30
 Tie/scarf                                                  30
-
+Shoes                                                       250
                                 *Button repair*
 Free
 
-        """,
-        chat_id=update.effective_chat.id,
-        parse_mode="Markdown",
-        reply_markup=ReplyKeyboardRemove()
-    )
+            """,
+            chat_id=update.effective_chat.id,
+            parse_mode="Markdown",
+            reply_markup=ReplyKeyboardRemove()
+            )
+        elif lang == "Amharic":
+            await context.bot.send_message(
+            text="""
+            አይነት እና ዋጋ 
+
+*አይነት*                                                      *የዋጋ ዝርዝር*
+
+                                  *ከላይ የሚለበሱ*
+
+ቲ-ሸርት                                                       50 
+ፖሎ                                                            60 
+ሸሚዝ/ሹራብ                                              100
+ጃኬት / ወፍራም                                          250/350
+ሰደሪያ                                                         50 
+
+                                *ከታች የሚለበሱ* 
+ሱሪ                                                              80 
+ቀሚስ ትልቅ/ትንሽ                                         250/200
+ቁምጣ                                                         50  
+
+                                *ሙሉ ልብሶች*
+የሀገር ልብስ                                                 350 
+ቬሎ ትልቅ/ትንሽ                                           2500/1800
+ኮት/ጂንስ ኮት                                              300/200 
+ሙሉ ልብስ                                                   400 
+
+                                *የቤት ውስጥ ልብሶች* 
+ብርድ ልብስ XL/ትልቅ/መካከለኛ/ትንሽ           550/500/450/400 
+ኮንፈርት                                                        190
+የአልጋ ልብስ ሽፋን                                         190 
+የጠረጴዛ ጨርቅ ትንሽ / መካከለኛ / ትልቅ        75/100/125 
+ፎጣ ትንሽ/መካከለኛ/ትልቅ                             30/40/60 
+
+                                *መለዋወጫዎች* 
+ናፕኪን                                                           30 
+የትራስ ልብስ                                                  30 
+ከረባት/ስካርፍ                                                30 
+ካልሲ                                                             30
+ፓንት                                                              30
+ጫማ                                                             250
+
+                                *የቁልፍ ጥገና*
+
+ነፃ
+            """,
+            chat_id=update.effective_chat.id,
+            parse_mode="Markdown",
+            reply_markup=ReplyKeyboardRemove()
+            )
         
         if lang == "English":
             await update.message.reply_text(
@@ -258,7 +307,11 @@ async def details(update: Update, context: CallbackContext) -> int:
     
     context.user_data['details'] = user_details
     
-    location_keyboard = KeyboardButton(text="Share Location", request_location=True)
+    if context.user_data['lang'] == "English":
+        location_keyboard = KeyboardButton(text="Share Location", request_location=True)
+    elif context.user_data['lang'] == "Amharic":
+        location_keyboard = KeyboardButton(text="አድራሻዎን ያጋሩ", request_location=True)
+    
     custom_keyboard = [[ location_keyboard ]]
     reply_markup = ReplyKeyboardMarkup(custom_keyboard, resize_keyboard=True)
     
@@ -289,7 +342,11 @@ async def location(update: Update, context: CallbackContext) -> int:
     context.user_data['location'] = user_location
     logger.info("Location %f / %f", user_location.latitude, user_location.longitude)
 
-    contact_keyboard = KeyboardButton(text="Share Contact", request_contact=True)
+    if context.user_data['lang'] == "English":
+        contact_keyboard = KeyboardButton(text="Share Contact", request_contact=True)
+    elif context.user_data['lang'] == "Amharic":
+        contact_keyboard = KeyboardButton(text="ስልክዎን ቁጥርዎን ያጋሩን", request_contact=True)
+        
     custom_keyboard = [[ contact_keyboard ]]
     reply_markup = ReplyKeyboardMarkup(custom_keyboard, resize_keyboard=True)
     
@@ -392,34 +449,71 @@ async def more_contact(update: Update, context: CallbackContext) -> int:
     return await subscription_prompt(update, context)
 
 async def subscription_prompt(update: Update, context: CallbackContext) -> int:
-    subscribe = KeyboardButton(text="Subscribe")
-    no = KeyboardButton(text="No")
+    lang = context.user_data['lang']
+    
+    if lang == "English":
+        subscribe = KeyboardButton(text="Subscribe")
+        no = KeyboardButton(text="No")
+    elif lang == "Amharic":
+        subscribe = KeyboardButton(text="የጥቅል አባል ይሁኑ")
+        no = KeyboardButton(text="አይ")
+    
     custom_keyboard = [[ subscribe, no ]]
     reply_markup = ReplyKeyboardMarkup(custom_keyboard, resize_keyboard=True)
-    await context.bot.send_message(
-        text="""Hi! Would you like to subscribe to our services:
+    
+    if lang == "English":
+        await context.bot.send_message(
+            text="""Hi! Would you like to subscribe to our services?
+        
+Benefits of becoming an Ocean Laundary subscriber
+
+✅ Our simplest plan is priced by the bag and always includes free pickup and delivery. Enjoy savings of up to 20% when you become a subscriber.
+
+➡️ You will get a 20% discount for a minimum of 1000 birr per bag for wash and fold only.
+➡️ Always free pickup and delivery.
+➡️ Next-day rush service is available for double the price.
+
+Once in a while service
+
+If you only need our wash-fold services every once in a while, this is the choice for you. It’s a great service.
+
+➡️ priced by the pieces.
+➡️ free pickup and delivery with a
+minimum of 1000 birr.
+➡️ Next-day rush service is available for a delivery payment of 250 birr.
+            """,
+            chat_id=update.effective_chat.id,
+            reply_markup=reply_markup,
+            parse_mode="Markdown"
+        )
+    elif lang == "Amharic":
+        await context.bot.send_message(
+            text="""ሰላም! ለምንሰጠው አገልግሎት መመዝገብ ይፈልጋሉ ?
+
+የኦሽን ልብስ እጥበት ተመዝጋቢ ሲሆኑ የምያገኙት ጥቅሞች፡-  
+
+✅ ሁል ጊዜ ነፃ ከቤትዎ የማንሳት እና የማድረስ አገልግሎት ከ 20% የሚደርስ ቅናሽ ጋር ያገኛሉ። 
+
+➡️ ለአንድ የኦሽን ቦርሳ በትንሹ 1000 ብር ሲሆን የ20% ቅናሽ ታገኛላችሁ ለማጠብ እና ማጠፍ ብቻ።
+
+➡️ ሁል ጊዜ ነፃ ከቤትዎ መውሰድ እና መመለስ
+
+➡️ ለ24 ሰአት አስቸኳይ እጥበት በእጥፍ ዋጋ ይገኛል።
+
+       ለአንድ ጊዜ አገልግሎት 
+
+✅ የእኛን የማጠቢያ ማጠፊያ አገልግሎት በየተወሰነ ጊዜ ብቻ ከፈለጉ፣ 
+
+➡️ ዋጋ የሚወጣዉ በእያንዳዱ ልብስ ልክ ነው
+➡️ ነፃ ከቤትዎ መውሰድ እና መመለስ ቢያንስ ለ1000 ብር ትእዛዝ።
+➡️ ለ24 ሰአት አስቸኳይ እጥበት በእጥፍ ዋጋ፤ ከ 250 birr የማድረሻ ጋር።
+                """,
+                chat_id=update.effective_chat.id,
+                reply_markup=reply_markup,
+                parse_mode="Markdown"
+        )
         
-*Benefits*:
-*Ocean subscriber*
-
-- Our simplest plan priced by the kilogram and always free pickup and delivery. Enjoy savings of up to 40% vs. order once in a while.
-- Priced by the bag, as low as 1500/bag.
-- If it fits 25 kg, we’ll clean it.
-- Always free pickup and delivery.
-- Next day rush service available for double price.
-
-*Once in a while service*
-
-If you only need our wash fold services every once in a while, this is the choice for you. It’s a great same service.
-
-- Priced by the pieces.
-- Free pickup and delivery with a minimum of 2000 birr.
-- Next day rush service available for 250 birr delivery payment.
-        """,
-        chat_id=update.effective_chat.id,
-        reply_markup=reply_markup,
-        parse_mode="Markdown"
-    )
+    logger.info("Subscription prompt sent")
     
     return SUBSCRIPTION
 
@@ -476,7 +570,7 @@ async def subscription_type(update: Update, context: CallbackContext) -> int:
         )
     elif context.user_data['lang'] == "Amharic":
         await update.message.reply_text(
-            'ለውቅያኖስ ስለተመዘገቡ እናመሰግናለን። የደንበኝነት ምዝገባዎን ለማረጋገጥ መልሰን እንደውልዎታለን።',
+            'የጥቅሉ አባል ስለሆኑ እናመሰግናለን።',
             reply_markup=ReplyKeyboardRemove()
         )
     
