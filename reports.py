@@ -65,7 +65,7 @@ async def send_csv_to_user(csv_file_path):
     bot = Bot(token=os.getenv('TELEGRAM_BOT_TOKEN'))
     chat_id = os.getenv('USERNAME_Y'), os.getenv('USERNAME_S')
     
-    if user in chat_id:
+    for user in chat_id:
         try:
             with open(csv_file_path, 'rb') as file:
                 await bot.send_document(chat_id=user, document=file)
