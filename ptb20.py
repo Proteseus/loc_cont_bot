@@ -101,7 +101,7 @@ async def localizer(update: Update, context: CallbackContext) -> int:
 
               100% ጥራትና ዋስት
 
-ስልክ - 09######## - 09########""",
+ስልክ - 0905800958 - 0910526541""",
             reply_markup=ReplyKeyboardRemove(),
             parse_mode="html"
         )
@@ -130,7 +130,7 @@ Free Pickup and Delivery available in all areas of Addis Ababa, with a minimum o
 
               100% 𝖖𝖚𝖆𝖑𝖎𝖙𝖞 𝖌𝖚𝖆𝖗𝖆𝖓𝖙𝖊𝖊
 
-Contact - 09######## - 09########""",
+Contact - 0905800958 - 0910526541""",
             reply_markup=ReplyKeyboardRemove(),
             parse_mode="html"
         )
@@ -167,12 +167,11 @@ async def order_laundry(update: Update, context: CallbackContext) -> int:
 *Item*                                                      *Price*
 
                                  *Tops*
-All shirts                                                50
-Polo                                                        60
-Blouse
-Sweater                                                 100
-Jacket/filled hight                               250/350
-Vest                                                        50
+All shirts                                                70
+Polo                                                        75
+Sweater                                                 140
+Jacket/filled hight                               200/250
+Vest                                                        70
 
                                 *Bottoms*
 Trouser                                                   80
@@ -183,19 +182,18 @@ Shorts                                                    50
 National dress                                       350
 Wedding dress L/S                               2500/1800
 Coat/jeans coat                                    300/200
-Suit jacket trouser                               400
+Suit jacket trouser                               350
 
                                 *Household*
-Blanket Ex/L/m/s                                  550/500/450/400
+Blanket L/s                                       550/450
 Duvet cover                                           190
-Comforter/duvet
-Table cloth s/m/l                                   75/100/125
-Towel s/m/l                                            30/40/60
+Table cloth s/m/l                                   180/140/90
+Towel s/m/l                                            120/80/50
 
                                 *Accessories*
 Napkin                                                     30
-Pillow case                                              30
-Tie/scarf                                                  30
+Pillow case                                              60
+Tie/scarf                                                  50
 Shoes                                                       250
                                 *Button repair*
 Free
@@ -214,11 +212,11 @@ Free
 
                                   *ከላይ የሚለበሱ*
 
-ቲ-ሸርት                                                       50 
-ፖሎ                                                            60 
-ሸሚዝ/ሹራብ                                              100
-ጃኬት / ወፍራም                                          250/350
-ሰደሪያ                                                         50 
+ቲ-ሸርት                                                       70 
+ፖሎ                                                            75 
+ሸሚዝ/ሹራብ                                              140
+ጃኬት / ወፍራም                                          200/250
+ሰደሪያ                                                         70 
 
                                 *ከታች የሚለበሱ* 
 ሱሪ                                                              80 
@@ -229,21 +227,20 @@ Free
 የሀገር ልብስ                                                 350 
 ቬሎ ትልቅ/ትንሽ                                           2500/1800
 ኮት/ጂንስ ኮት                                              300/200 
-ሙሉ ልብስ                                                   400 
+ሙሉ ልብስ                                                   350 
 
                                 *የቤት ውስጥ ልብሶች* 
-ብርድ ልብስ XL/ትልቅ/መካከለኛ/ትንሽ           550/500/450/400 
-ኮንፈርት                                                        190
-የአልጋ ልብስ ሽፋን                                         190 
-የጠረጴዛ ጨርቅ ትንሽ / መካከለኛ / ትልቅ        75/100/125 
-ፎጣ ትንሽ/መካከለኛ/ትልቅ                             30/40/60 
+ብርድ ልብስ ትልቅ/ትንሽ                     550/450
+ኮንፈርት                                                        190 
+የጠረጴዛ ጨርቅ ትንሽ / መካከለኛ / ትልቅ        180/140/90 
+ፎጣ ትንሽ/መካከለኛ/ትልቅ                             120/80/50 
 
                                 *መለዋወጫዎች* 
 ናፕኪን                                                           30 
-የትራስ ልብስ                                                  30 
-ከረባት/ስካርፍ                                                30 
+የትራስ ልብስ                                                  60 
+ከረባት/ስካርፍ                                                50 
 ካልሲ                                                             30
-ፓንት                                                              30
+ፓንት                                                              50
 ጫማ                                                             250
 
                                 *የቁልፍ ጥገና*
@@ -659,8 +656,9 @@ async def send_details(update: Update, context: CallbackContext, sub: False, ord
         one_time_keyboard=True
     )
 
-    await update.message.reply_text(
-        text=f"""
+    if context.user_data['lang'] == "English":
+        await update.message.reply_text(
+            text=f"""
         Order `#{tracker_id}` accepted
 
 The courier will write you in advance about the time of the arrival.
@@ -683,10 +681,39 @@ Become a subscriber now on *Ocean*.
 
 Save time and your sanity when you leave the dry cleaning errands to us.
 
-Call `4840` for any help
+    Call `6307` for any help
         """,
-        parse_mode='markdown',
-        reply_markup=reorder_)
+            parse_mode='markdown',
+            reply_markup=reorder_)
+    elif context.user_data['lang'] == "Amharic":
+        await update.message.reply_text(
+            text=f"""
+            ትዕዛዝ `#{tracker_id}` ተቀብለናል
+
+መልእክተኛው ስለ መድረሻው ጊዜ አስቀድሞ ይጽፍልዎታል። 
+
+ለትዕዛዙ ክፍያ የሚከናወነው የታጠቡት ዕቃዎች ሲደርሱ ነው. 
+
+በትእዛዙ ቀን ትዕዛዞች ይወሰዳሉ 
+
+ለጠፉ ወይም ለተሰበሩ ቁልፎች የጥገና አገልግሎት ከማንኛውም የኦሽን ደረቅ ማጽጃ ትእዛዝ ጋር ነፃ ነው።
+
+በሳምንት 7 ቀናት እንሰራለን፣ ከጠዋቱ 12 ሰአት እስከ ማታ 4 ሰአት።
+
+የመውሰጃ እና የመላኪያ ክፍያዎች 190 ብር ነው የመላኪያ ክፍያ የሚከፈለው ትዕዛዝዎ ከ1000 ብር በታች ከሆነ ብቻ ነው። 
+
+ነፃ መላኪያ 
+
+ጥቅላችንን በመመዝገብ ያልተገደበ ነፃ መውሰጃ እና ማድረስ አገልግሎት ያግኙ 
+
+አሁኑኑ በኦሽን ላይ ተመዝጋቢ ይሁኑ። 
+
+የጽዳት ስራዎችን ለእኛ በመተዉ ጊዜዎን እና ንፅህናዎን ይጠብቁ።
+
+      ለማንኛውም እርዳታ `6307` ይደውሉ
+            """,
+            parse_mode='markdown',
+            reply_markup=reorder_)
     
     message = "Order: #{}\nName: {}\nPhone: {}\nAlt: {}\nDetails: {}\nSubscription: {}\nSubscription type: {}\n[Open in Map](https://maps.google.com/?q={},{})".format(
         tracker_id,
